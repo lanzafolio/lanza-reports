@@ -12,6 +12,8 @@
       --primary: #1e293b;
       --accent: #b45309;
       --accent-light: #fef3c7;
+      --ai: #4f46e5;
+      --ai-light: #eef2ff;
       --bg: #f1f5f9;
       --card: #ffffff;
       --border: #cbd5e1;
@@ -35,7 +37,7 @@
       background: var(--bg);
       color: var(--text);
       line-height: 1.45;
-      padding-bottom: 80px;
+      padding-bottom: 85px;
     }
 
     /* Top App Bar */
@@ -72,7 +74,7 @@
       border: none;
       border-radius: 10px;
       padding: 10px 14px;
-      font-size: 0.95rem;
+      font-size: 0.94rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -80,17 +82,37 @@
       justify-content: center;
       gap: 6px;
       transition: opacity 0.15s, transform 0.1s;
+      text-decoration: none;
     }
 
     .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-accent { background: var(--accent); color: #fff; }
+    .btn-ai { background: var(--ai); color: #fff; }
     .btn-ok { background: var(--ok); color: #fff; }
     .btn-danger { background: var(--fail); color: #fff; }
     .btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--border); }
     .btn-ghost { background: rgba(255,255,255,0.14); color: #fff; padding: 7px 11px; font-size: 0.85rem; }
-    .btn-sm { padding: 6px 10px; font-size: 0.82rem; border-radius: 8px; }
+    .btn-sm { padding: 7px 10px; font-size: 0.82rem; border-radius: 8px; }
     .btn-block { width: 100%; }
+
+    .btn-rec {
+      background: #dc2626;
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-rec.recording {
+      background: #991b1b;
+      animation: pulseRec 1.1s infinite;
+    }
+
+    @keyframes pulseRec {
+      0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.55); }
+      70% { box-shadow: 0 0 0 10px rgba(220,38,38,0); }
+      100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+    }
 
     .container {
       max-width: 900px;
@@ -187,6 +209,21 @@
       width: fit-content;
     }
 
+    .badge-ai {
+      background: var(--ai-light);
+      color: var(--ai);
+    }
+
+    .badge-ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+    }
+
+    .badge-wait {
+      background: var(--nc-bg);
+      color: var(--nc);
+    }
+
     /* Form Controls */
     .grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -202,6 +239,7 @@
     .field label { font-size: 0.85rem; font-weight: 600; color: #334155; }
 
     input[type="text"],
+    input[type="password"],
     input[type="date"],
     input[type="tel"],
     input[type="email"],
@@ -224,6 +262,75 @@
     }
 
     textarea { min-height: 74px; resize: vertical; }
+
+    /* Voice & Media Controls */
+    .voice-panel {
+      background: #fff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    .voice-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .audio-wrap {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .audio-wrap audio {
+      width: 100%;
+      height: 38px;
+    }
+
+    .transcript-box {
+      background: var(--ai-light);
+      border-right: 3px solid var(--ai);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.83rem;
+      color: #312e81;
+      margin-top: 6px;
+    }
+
+    .ai-banner {
+      background: var(--ai-light);
+      border: 1.5px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ai-status-line {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #312e81;
+    }
+
+    .photo-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .file-btn-label {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .hidden-input { display: none; }
 
     /* Step Tabs for UPS */
     .steps-bar {
@@ -314,6 +421,8 @@
       margin-bottom: 10px;
       font-weight: 700;
       color: var(--primary);
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .photo-preview {
@@ -348,7 +457,7 @@
       padding: 10px 14px;
       display: flex;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       z-index: 90;
     }
 
@@ -537,7 +646,7 @@
     </div>
   </header>
 
-  <div class="save-toast no-print" id="save-toast">נשמר בטלפון</div>
+  <div class="save-toast no-print" id="save-toast">נשמר במכשיר</div>
 
   <main class="container no-print">
 
@@ -551,9 +660,9 @@
 
       <div class="home-grid">
         <button class="menu-btn" onclick="showScreen('general')">
-          <span class="badge">סגנון 1</span>
+          <span class="badge badge-ai">סגנון 1 + הקלטה ו-AI</span>
           <strong>דוח סיור / פיקוח כללי</strong>
-          <span>רישום ממצאים, הנחיות, גורם אחראי, משתתפים וצילום תמונות מהשטח לכל סעיף.</span>
+          <span>צילום מהשטח + הקלטה קולית לכל סעיף, ופענוח אוטומטי עם AI לטבלת ממצאים ו-PDF.</span>
         </button>
 
         <button class="menu-btn" onclick="showScreen('ups')">
@@ -564,8 +673,8 @@
 
         <button class="menu-btn" onclick="showScreen('settings')">
           <span class="badge">הגדרה חד-פעמית</span>
-          <strong>הגדרות עסק, לוגו וחותמת</strong>
-          <span>העלאת תמונת הלוגו והחותמת, ועדכון פרטי הרישיון והקשר שיופיעו בכל PDF.</span>
+          <strong>הגדרות עסק, לוגו, חותמת ו-AI</strong>
+          <span>העלאת לוגו וחותמת, פרטי רישיון והדבקת מפתח Google AI החינמי לפענוח הקלטות.</span>
         </button>
 
         <div class="menu-btn disabled">
@@ -579,44 +688,41 @@
     <!-- ==================== SCREEN: SETTINGS ==================== -->
     <section id="screen-settings" class="screen">
       <div class="card">
-        <h3 class="card-title">פרטי העסק והבודק (מופיעים בכל דוח)</h3>
+        <h3 class="card-title">הגדרות פענוח קולי (Google Gemini AI - חינמי)</h3>
+        <p class="small-hint">המפתח נשמר אך ורק בטלפון/מחשב שלך ואינו נשלח לשום מקום חוץ משרתי Google לצורך תמלול ההקלטות שלך.</p>
         <div class="grid-2">
           <div class="field">
-            <label>שם העסק</label>
-            <input type="text" id="set-bizName" oninput="saveSettings()" />
+            <label>מפתח API מ-Google AI Studio</label>
+            <input type="password" id="set-geminiApiKey" placeholder="הדבק כאן מפתח שמתחיל ב-AIza..." oninput="saveSettings()" />
           </div>
           <div class="field">
-            <label>תואר מבצע הבדיקה בשער</label>
-            <input type="text" id="set-roleTitle" oninput="saveSettings()" />
+            <label>מודל AI לפענוח</label>
+            <select id="set-geminiModel" onchange="saveSettings()">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (מומלץ ומהיר)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (מעמיק יותר)</option>
+            </select>
           </div>
-          <div class="field">
-            <label>שם מבצע הבדיקה</label>
-            <input type="text" id="set-inspectorName" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>מספר ע.מ / ח.פ</label>
-            <input type="text" id="set-companyId" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>מספר רישיון חשמלאי הנדסאי</label>
-            <input type="text" id="set-elecLicense" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>מספר רישיון בודק (להשלמה בעתיד)</label>
-            <input type="text" id="set-inspectorLicense" placeholder="אופציונלי" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>טלפון</label>
-            <input type="tel" id="set-phone" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>דוא"ל (אופציונלי)</label>
-            <input type="email" id="set-email" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" />
-          </div>
-          <div class="field">
-            <label>כתובת (אופציונלי)</label>
-            <input type="text" id="set-address" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" />
-          </div>
+        </div>
+        <div class="voice-row" style="margin-top:6px;">
+          <button class="btn btn-ai btn-sm" onclick="testGeminiKey()">בדוק חיבור AI</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleApiKeyVis()">הצג / הסתר מפתח</button>
+          <span id="ai-test-result" class="small-hint" style="margin:0;font-weight:600;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">פרטי העסק והבודק (מופיעים בכל דוח)</h3>
+        <div class="grid-2">
+          <div class="field"><label>שם העסק</label><input type="text" id="set-bizName" oninput="saveSettings()" /></div>
+          <div class="field"><label>תואר מבצע הבדיקה בשער</label><input type="text" id="set-roleTitle" oninput="saveSettings()" /></div>
+          <div class="field"><label>שם מבצע הבדיקה</label><input type="text" id="set-inspectorName" oninput="saveSettings()" /></div>
+          <div class="field"><label>מספר ע.מ / ח.פ</label><input type="text" id="set-companyId" oninput="saveSettings()" /></div>
+          <div class="field"><label>מספר רישיון חשמלאי הנדסאי</label><input type="text" id="set-elecLicense" oninput="saveSettings()" /></div>
+          <div class="field"><label>מספר רישיון בודק (להשלמה בעתיד)</label><input type="text" id="set-inspectorLicense" placeholder="אופציונלי" oninput="saveSettings()" /></div>
+          <div class="field"><label>טלפון</label><input type="tel" id="set-phone" oninput="saveSettings()" /></div>
+          <div class="field"><label>דוא"ל (אופציונלי)</label><input type="email" id="set-email" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" /></div>
+          <div class="field"><label>כתובת (אופציונלי)</label><input type="text" id="set-address" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" /></div>
         </div>
       </div>
 
@@ -628,13 +734,13 @@
             <label>תמונת לוגו (לראש הדוח)</label>
             <input type="file" accept="image/*" onchange="handleBrandUpload(event, 'logo')" />
             <img id="preview-logo" class="img-setting-preview" style="display:none;" alt="תצוגה מקדימה לוגו" />
-            <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="clearBrandImage('logo')">הסר לוגו</button>
+            <button class="btn btn-outline btn-sm" style="margin-top:6px;width:fit-content;" onclick="clearBrandImage('logo')">הסר לוגו</button>
           </div>
           <div class="field">
             <label>תמונת חותמת וחתימה (לתחתית הדוח)</label>
             <input type="file" accept="image/*" onchange="handleBrandUpload(event, 'stamp')" />
             <img id="preview-stamp" class="img-setting-preview" style="display:none;" alt="תצוגה מקדימה חותמת" />
-            <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="clearBrandImage('stamp')">הסר חותמת</button>
+            <button class="btn btn-outline btn-sm" style="margin-top:6px;width:fit-content;" onclick="clearBrandImage('stamp')">הסר חותמת</button>
           </div>
         </div>
       </div>
@@ -674,9 +780,20 @@
         <div id="gen-participants-list"></div>
       </div>
 
+      <!-- AI BATCH PROCESSING BANNER -->
+      <div class="ai-banner">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <strong style="color:#312e81;">עבודה קולית מהשטח עם AI</strong>
+            <div class="ai-status-line" id="ai-batch-status">צלם תמונה והקלט הערה קולית בכל סעיף, ובסוף הסיור לחץ לפענוח.</div>
+          </div>
+          <button class="btn btn-ai" id="btn-parse-all" onclick="parseAllGenAudio()">פענח את כל ההקלטות עם AI</button>
+        </div>
+      </div>
+
       <div class="card">
         <h3 class="card-title">
-          <span>ממצאים, הנחיות ותמונות</span>
+          <span>ממצאים, הקלטות ותמונות</span>
           <button class="btn btn-accent btn-sm" onclick="addGenItem()">+ הוסף סעיף ממצא</button>
         </h3>
         <div id="gen-items-list"></div>
@@ -694,6 +811,13 @@
           <label>טעינת קובץ גיבוי שמור (JSON)</label>
           <input type="file" accept=".json" onchange="importDraft(event, 'general')" />
         </div>
+      </div>
+
+      <!-- BOTTOM BAR FOR GENERAL REPORT -->
+      <div class="bottom-nav no-print" id="gen-bottom-nav" style="display:none;">
+        <button class="btn btn-accent" style="flex:1;" onclick="addGenItem(true)">+ סעיף חדש</button>
+        <button class="btn btn-ai" style="flex:1;" onclick="parseAllGenAudio()">פענח AI</button>
+        <button class="btn btn-ok" onclick="printGeneralReport()">PDF</button>
       </div>
     </section>
 
@@ -884,7 +1008,7 @@
         </div>
       </div>
 
-      <!-- BOTTOM STEP NAVIGATION -->
+      <!-- BOTTOM STEP NAVIGATION FOR UPS -->
       <div class="bottom-nav no-print" id="ups-bottom-nav" style="display:none;">
         <button class="btn btn-outline" id="ups-prev-btn" onclick="moveUpsStep(-1)">הקודם</button>
         <button class="btn btn-ok" onclick="printUpsReport()">PDF</button>
@@ -898,6 +1022,56 @@
   <div id="print-area"></div>
 
   <script>
+    /* ================= INDEXEDDB STORAGE (LARGE OFFLINE STORAGE) ================= */
+    const DB_NAME = 'LanzaFieldAppDB';
+    const DB_STORE = 'kv';
+    let dbPromise = null;
+
+    function openDB() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains(DB_STORE)) {
+            req.result.createObjectStore(DB_STORE);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return dbPromise;
+    }
+
+    async function idbGet(key) {
+      try {
+        const db = await openDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readonly');
+          const req = tx.objectStore(DB_STORE).get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function idbSet(key, val) {
+      try {
+        const db = await openDB();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          tx.objectStore(DB_STORE).put(val, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        showToast('נשמר במכשיר');
+      } catch (e) {
+        console.error('DB save error:', e);
+        showToast('שגיאת שמירה במכשיר');
+      }
+    }
+
     /* ================= CONFIG & CONSTANTS ================= */
     const STORAGE_KEYS = {
       settings: 'lanza_app_settings_v1',
@@ -916,7 +1090,9 @@
       email: '',
       address: '',
       logo: '',
-      stamp: ''
+      stamp: '',
+      geminiApiKey: '',
+      geminiModel: 'gemini-2.5-flash'
     };
 
     const UPS_BREAKERS_DEF = [
@@ -1025,11 +1201,19 @@
     ];
 
     /* ================= STATE ================= */
-    let settings = loadJSON(STORAGE_KEYS.settings, { ...DEFAULT_SETTINGS });
-    let genData = loadJSON(STORAGE_KEYS.general, createDefaultGeneral());
-    let upsData = loadJSON(STORAGE_KEYS.ups, createDefaultUps());
+    let settings = { ...DEFAULT_SETTINGS };
+    let genData = createDefaultGeneral();
+    let upsData = createDefaultUps();
     let currentUpsStep = 1;
     let toastTimer = null;
+
+    // Voice Recording State
+    let activeRecorder = null;
+    let activeStream = null;
+    let recordingIdx = -1;
+    let recordingChunks = [];
+    let recTimerInterval = null;
+    let recSeconds = 0;
 
     function todayISO() {
       const d = new Date();
@@ -1048,6 +1232,21 @@
       return p.length === 3 ? `${p[2]}${p[1]}${p[0].slice(-2)}` : '000000';
     }
 
+    function createEmptyGenItem() {
+      return {
+        location: 'כללי',
+        instruction: '',
+        responsibility: 'קבלן',
+        photo: '',
+        audioDataUrl: '',
+        audioMime: '',
+        transcript: '',
+        aiParsed: false,
+        fixDate: '',
+        performer: ''
+      };
+    }
+
     function createDefaultGeneral() {
       return {
         title: '',
@@ -1055,7 +1254,7 @@
         date: todayISO(),
         scope: '',
         participants: [{ name: '', company: '' }],
-        items: [{ location: 'כללי', instruction: '', responsibility: 'קבלן', photo: '', fixDate: '', performer: '' }]
+        items: [createEmptyGenItem()]
       };
     }
 
@@ -1085,24 +1284,22 @@
       };
     }
 
-    /* ================= STORAGE HELPERS ================= */
-    function loadJSON(key, fallback) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return fallback;
-        return Object.assign(fallback, JSON.parse(raw));
-      } catch (e) {
-        return fallback;
-      }
+    /* ================= ESCAPING & HELPERS ================= */
+    function escAttr(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
-    function saveJSON(key, data) {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-        showToast('נשמר במכשיר');
-      } catch (e) {
-        alert('זיכרון הדפדפן מלא (כנראה עקב תמונות רבות). מומלץ להפיק PDF או למחוק תמונות ישנות.');
-      }
+    function escHtml(str) {
+      return escAttr(str).replace(/\n/g, '<br>');
+    }
+
+    function valOrDash(v) {
+      const s = String(v || '').trim();
+      return s ? escHtml(s) : '—';
     }
 
     function showToast(msg) {
@@ -1110,21 +1307,13 @@
       el.textContent = msg;
       el.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 1400);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 1600);
     }
 
-    function esc(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/\n/g, '<br>');
-    }
-
-    function valOrDash(v) {
-      const s = String(v || '').trim();
-      return s ? esc(s) : '—';
+    function formatTimer(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
     }
 
     /* ================= IMAGE COMPRESSION ================= */
@@ -1155,14 +1344,16 @@
 
     /* ================= NAVIGATION ================= */
     function showScreen(name) {
+      if (recordingIdx !== -1) stopVoiceRecording();
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + name).classList.add('active');
       document.getElementById('btn-home').style.display = name === 'home' ? 'none' : 'inline-flex';
       document.getElementById('ups-bottom-nav').style.display = name === 'ups' ? 'flex' : 'none';
+      document.getElementById('gen-bottom-nav').style.display = name === 'general' ? 'flex' : 'none';
 
       const titles = {
         home: 'לנזה - דוחות בדיקה ושטח',
-        settings: 'הגדרות עסק, לוגו וחותמת',
+        settings: 'הגדרות עסק, לוגו ו-AI',
         general: 'דוח סיור / פיקוח כללי',
         ups: 'דוח בדיקת מערכת אל-פסק (UPS)'
       };
@@ -1172,14 +1363,13 @@
 
     /* ================= SETTINGS ================= */
     function renderSettings() {
-      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address']
+      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address', 'geminiApiKey', 'geminiModel']
         .forEach(k => {
           const el = document.getElementById('set-' + k);
           if (el) el.value = settings[k] || '';
         });
 
-      const homeBiz = document.getElementById('home-biz-name');
-      homeBiz.textContent = settings.bizName || DEFAULT_SETTINGS.bizName;
+      document.getElementById('home-biz-name').textContent = settings.bizName || DEFAULT_SETTINGS.bizName;
 
       const homeLogo = document.getElementById('home-logo');
       const prevLogo = document.getElementById('preview-logo');
@@ -1200,36 +1390,340 @@
     }
 
     function saveSettings() {
-      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address']
+      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address', 'geminiApiKey', 'geminiModel']
         .forEach(k => {
-          settings[k] = document.getElementById('set-' + k).value;
+          const el = document.getElementById('set-' + k);
+          if (el) settings[k] = el.value.trim();
         });
-      saveJSON(STORAGE_KEYS.settings, settings);
-      renderSettings();
+      idbSet(STORAGE_KEYS.settings, settings);
+      document.getElementById('home-biz-name').textContent = settings.bizName || DEFAULT_SETTINGS.bizName;
+    }
+
+    function toggleApiKeyVis() {
+      const el = document.getElementById('set-geminiApiKey');
+      el.type = el.type === 'password' ? 'text' : 'password';
     }
 
     function handleBrandUpload(event, key) {
       const file = event.target.files[0];
       if (!file) return;
-      compressImageFile(file, 900, 0.82, dataUrl => {
+      compressImageFile(file, 900, 0.85, dataUrl => {
         settings[key] = dataUrl;
-        saveJSON(STORAGE_KEYS.settings, settings);
+        idbSet(STORAGE_KEYS.settings, settings);
         renderSettings();
       });
     }
 
     function clearBrandImage(key) {
       settings[key] = '';
-      saveJSON(STORAGE_KEYS.settings, settings);
+      idbSet(STORAGE_KEYS.settings, settings);
       renderSettings();
     }
 
-    /* ================= GENERAL REPORT ================= */
+    async function testGeminiKey() {
+      const resEl = document.getElementById('ai-test-result');
+      const key = (settings.geminiApiKey || '').trim();
+      if (!key) {
+        resEl.style.color = '#b91c1c';
+        resEl.textContent = 'הדבק קודם מפתח API.';
+        return;
+      }
+      resEl.style.color = '#312e81';
+      resEl.textContent = 'בודק חיבור...';
+      try {
+        const model = settings.geminiModel || 'gemini-2.5-flash';
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'השב במילה אחת: תקין' }] }] })
+        });
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || ('שגיאה ' + resp.status));
+        }
+        resEl.style.color = '#15803d';
+        resEl.textContent = 'החיבור תקין ומוכן לעבודה!';
+      } catch (e) {
+        resEl.style.color = '#b91c1c';
+        resEl.textContent = 'שגיאה בחיבור: ' + e.message;
+      }
+    }
+
+    /* ================= VOICE RECORDING ================= */
+    function getSupportedAudioMime() {
+      const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+      for (const t of types) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t;
+      }
+      return '';
+    }
+
+    async function toggleVoiceRecording(idx) {
+      if (recordingIdx === idx) {
+        stopVoiceRecording();
+        return;
+      }
+      if (recordingIdx !== -1) {
+        stopVoiceRecording();
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('הדפדפן אינו תומך בהקלטת שמע. ודא שהאפליקציה נפתחת מכתובת מאובטחת (HTTPS) כמו GitHub Pages.');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        activeStream = stream;
+        const mime = getSupportedAudioMime();
+        activeRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        recordingChunks = [];
+        recordingIdx = idx;
+        recSeconds = 0;
+
+        activeRecorder.ondataavailable = ev => {
+          if (ev.data && ev.data.size > 0) recordingChunks.push(ev.data);
+        };
+
+        activeRecorder.onstop = () => {
+          const cleanMime = (activeRecorder.mimeType || mime || 'audio/webm').split(';')[0];
+          const blob = new Blob(recordingChunks, { type: cleanMime });
+          const reader = new FileReader();
+          const savedIdx = idx;
+          reader.onloadend = () => {
+            if (genData.items[savedIdx]) {
+              genData.items[savedIdx].audioDataUrl = reader.result;
+              genData.items[savedIdx].audioMime = cleanMime;
+              genData.items[savedIdx].aiParsed = false;
+              idbSet(STORAGE_KEYS.general, genData);
+              renderGeneral();
+            }
+          };
+          reader.readAsDataURL(blob);
+          cleanupMic();
+        };
+
+        activeRecorder.start();
+        updateRecordButtonUI(idx, true);
+        recTimerInterval = setInterval(() => {
+          recSeconds++;
+          updateRecordButtonUI(idx, true);
+        }, 1000);
+      } catch (e) {
+        cleanupMic();
+        alert('לא התקבלה גישה למיקרופון. אשר הרשאת מיקרופון בדפדפן ונסה שוב.');
+      }
+    }
+
+    function stopVoiceRecording() {
+      clearInterval(recTimerInterval);
+      if (activeRecorder && activeRecorder.state !== 'inactive') {
+        activeRecorder.stop();
+      } else {
+        cleanupMic();
+      }
+    }
+
+    function cleanupMic() {
+      clearInterval(recTimerInterval);
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => t.stop());
+        activeStream = null;
+      }
+      activeRecorder = null;
+      recordingIdx = -1;
+      recSeconds = 0;
+    }
+
+    function updateRecordButtonUI(idx, isRec) {
+      const btn = document.getElementById(`rec-btn-${idx}`);
+      if (!btn) return;
+      if (isRec) {
+        btn.classList.add('recording');
+        btn.textContent = `עצור הקלטה (${formatTimer(recSeconds)})`;
+      } else {
+        btn.classList.remove('recording');
+        btn.textContent = 'הקלט הערה קולית';
+      }
+    }
+
+    function deleteGenAudio(idx) {
+      genData.items[idx].audioDataUrl = '';
+      genData.items[idx].audioMime = '';
+      genData.items[idx].transcript = '';
+      genData.items[idx].aiParsed = false;
+      idbSet(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    /* ================= GEMINI AI AUDIO + PHOTO PARSING ================= */
+    async function callGeminiForGenItem(item) {
+      const key = (settings.geminiApiKey || '').trim();
+      if (!key) {
+        throw new Error('לא הוגדר מפתח AI. היכנס למסך "הגדרות" והדבק מפתח מ-Google AI Studio.');
+      }
+      if (!navigator.onLine) {
+        throw new Error('אין כרגע חיבור לאינטרנט. ההקלטות שמורות בטלפון – נסה שוב כשתהיה קליטה.');
+      }
+      if (!item.audioDataUrl) {
+        throw new Error('אין הקלטה קולית בסעיף זה.');
+      }
+
+      const model = settings.geminiModel || 'gemini-2.5-flash';
+      const audioBase64 = item.audioDataUrl.split(',')[1];
+      const audioMime = (item.audioMime || 'audio/webm').split(';')[0];
+
+      const prompt = `אתה עוזר מקצועי למהנדס ובודק חשמל בישראל המפיק דוח סיור ופיקוח (טבלת ממצאים והנחיות).
+האזן בקפידה להקלטה הקולית המצורפת (ואם מצורפת גם תמונה, היעזר בה רק לזיהוי שמות לוחות/מפסקים/מספרים אם הוזכרו או נראים בבירור).
+חוקי ברזל:
+1. אל תמציא שום נתון, מידה, מספר תא או ליקוי שלא נאמרו בהקלטה או לא נראים בבירור.
+2. שמור בדיוק מוחלט על מספרים, דגמים, שמות לוחות ויחידות מידה כפי שנאמרו (A, V, kA, mm², RS485 וכו').
+3. נסח את ההנחייה בעברית מקצועית, קצרה, ברורה ונקייה המתאימה לדוח פיקוח רשמי.
+4. החזר אובייקט JSON בלבד במבנה הבא:
+{
+  "location": "מיקום או נושא קצר (למשל: כללי, לוח ראשי, לוח גנרטור, תא 8)",
+  "instruction": "ניסוח מקצועי, ברור ומדויק של הממצא או ההנחייה לביצוע",
+  "responsibility": "אחד מהערכים הבאים בלבד: קבלן, מזמין, יועץ, ספק, אחר (ברירת מחדל: קבלן אם לא צוין אחרת)",
+  "transcript": "תמלול נאמן למקור של מה שנאמר בהקלטה"
+}`;
+
+      const parts = [
+        { text: prompt },
+        { inlineData: { mimeType: audioMime, data: audioBase64 } }
+      ];
+
+      if (item.photo && item.photo.includes(',')) {
+        parts.push({
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: item.photo.split(',')[1]
+          }
+        });
+      }
+
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.1
+            }
+          })
+        }
+      );
+
+      if (!resp.ok) {
+        if (resp.status === 400 || resp.status === 403) {
+          throw new Error('מפתח ה-API אינו תקין. בדוק את המפתח במסך ההגדרות.');
+        }
+        if (resp.status === 429) {
+          throw new Error('עומס זמני במכסה החינמית לדקה. המתן 30 שניות ונסה שוב.');
+        }
+        const errObj = await resp.json().catch(() => ({}));
+        throw new Error(errObj?.error?.message || ('שגיאת שרת ' + resp.status));
+      }
+
+      const data = await resp.json();
+      let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      rawText = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      const parsed = JSON.parse(rawText);
+
+      const allowedResp = ['קבלן', 'מזמין', 'יועץ', 'ספק', 'אחר'];
+      return {
+        location: (parsed.location || '').trim() || 'כללי',
+        instruction: (parsed.instruction || '').trim(),
+        responsibility: allowedResp.includes(parsed.responsibility) ? parsed.responsibility : 'קבלן',
+        transcript: (parsed.transcript || '').trim()
+      };
+    }
+
+    async function parseSingleGenItem(idx) {
+      const item = genData.items[idx];
+      if (!item || !item.audioDataUrl) {
+        alert('יש להקליט קודם הערה קולית בסעיף זה.');
+        return;
+      }
+      const statusEl = document.getElementById('ai-batch-status');
+      statusEl.textContent = `מפענח סעיף #${idx + 1}...`;
+      try {
+        const res = await callGeminiForGenItem(item);
+        item.location = res.location;
+        item.instruction = res.instruction;
+        item.responsibility = res.responsibility;
+        item.transcript = res.transcript;
+        item.aiParsed = true;
+        await idbSet(STORAGE_KEYS.general, genData);
+        renderGeneral();
+        statusEl.textContent = `סעיף #${idx + 1} פוענח בהצלחה.`;
+      } catch (e) {
+        statusEl.textContent = 'שגיאה בפענוח.';
+        alert(e.message);
+      }
+    }
+
+    async function parseAllGenAudio() {
+      const pendingIndices = genData.items
+        .map((it, idx) => (it.audioDataUrl && !it.aiParsed ? idx : -1))
+        .filter(idx => idx !== -1);
+
+      if (!pendingIndices.length) {
+        const anyAudio = genData.items.some(it => it.audioDataUrl);
+        if (!anyAudio) {
+          alert('לא נמצאו הקלטות קוליות בדוח. הקלט קודם הערה קולית בסעיף אחד לפחות.');
+        } else {
+          alert('כל ההקלטות בדוח כבר פוענחו. ניתן להפעיל פענוח מחדש בתוך סעיף ספציפי.');
+        }
+        return;
+      }
+
+      const btn = document.getElementById('btn-parse-all');
+      const statusEl = document.getElementById('ai-batch-status');
+      btn.disabled = true;
+
+      let okCount = 0;
+      for (let i = 0; i < pendingIndices.length; i++) {
+        const idx = pendingIndices[i];
+        statusEl.textContent = `מפענח הקלטה ${i + 1} מתוך ${pendingIndices.length} (סעיף #${idx + 1})...`;
+        try {
+          const res = await callGeminiForGenItem(genData.items[idx]);
+          genData.items[idx].location = res.location;
+          genData.items[idx].instruction = res.instruction;
+          genData.items[idx].responsibility = res.responsibility;
+          genData.items[idx].transcript = res.transcript;
+          genData.items[idx].aiParsed = true;
+          okCount++;
+          await idbSet(STORAGE_KEYS.general, genData);
+          renderGeneral();
+        } catch (e) {
+          btn.disabled = false;
+          statusEl.textContent = `נעצר בסעיף #${idx + 1}: ${e.message}`;
+          alert(e.message);
+          return;
+        }
+      }
+
+      btn.disabled = false;
+      statusEl.textContent = `הושלם! פוענחו ${okCount} הקלטות בהצלחה. עבור על הטקסט והפק PDF.`;
+    }
+
+    /* ================= GENERAL REPORT UI ================= */
     function renderGeneral() {
       document.getElementById('gen-title').value = genData.title || '';
       document.getElementById('gen-code').value = genData.code || '';
       document.getElementById('gen-date').value = genData.date || todayISO();
       document.getElementById('gen-scope').value = genData.scope || '';
+
+      const pendingCount = (genData.items || []).filter(it => it.audioDataUrl && !it.aiParsed).length;
+      const statusEl = document.getElementById('ai-batch-status');
+      if (pendingCount > 0) {
+        statusEl.textContent = `יש ${pendingCount} הקלטות שממתינות לפענוח AI.`;
+      } else {
+        statusEl.textContent = 'צלם תמונה והקלט הערה קולית בכל סעיף, ובסוף הסיור לחץ לפענוח.';
+      }
 
       const pList = document.getElementById('gen-participants-list');
       pList.innerHTML = '';
@@ -1238,8 +1732,8 @@
         div.className = 'grid-3';
         div.style.marginBottom = '8px';
         div.innerHTML = `
-          <input type="text" placeholder="שם משתתף" value="${esc(p.name)}" oninput="genData.participants[${idx}].name=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
-          <input type="text" placeholder="חברה / ארגון" value="${esc(p.company)}" oninput="genData.participants[${idx}].company=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
+          <input type="text" placeholder="שם משתתף" value="${escAttr(p.name)}" oninput="genData.participants[${idx}].name=this.value; idbSet(STORAGE_KEYS.general, genData);" />
+          <input type="text" placeholder="חברה / ארגון" value="${escAttr(p.company)}" oninput="genData.participants[${idx}].company=this.value; idbSet(STORAGE_KEYS.general, genData);" />
           <button class="btn btn-outline btn-sm" onclick="removeGenParticipant(${idx})">הסר</button>
         `;
         pList.appendChild(div);
@@ -1250,20 +1744,43 @@
       genData.items.forEach((it, idx) => {
         const box = document.createElement('div');
         box.className = 'item-box';
+        box.id = `gen-item-box-${idx}`;
         const trackNum = `${genData.code || '000'}-${dateStampCode(genData.date)}-${String(idx + 1).padStart(4, '0')}`;
+
+        let audioBadge = '';
+        if (it.audioDataUrl && it.aiParsed) audioBadge = '<span class="badge badge-ok">פוענח ב-AI</span>';
+        else if (it.audioDataUrl) audioBadge = '<span class="badge badge-wait">ממתין לפענוח</span>';
+
         box.innerHTML = `
           <div class="item-head">
-            <span>סעיף #${idx + 1} (${esc(trackNum)})</span>
+            <span>סעיף #${idx + 1} (${escAttr(trackNum)}) ${audioBadge}</span>
             <button class="btn btn-danger btn-sm" onclick="removeGenItem(${idx})">מחק</button>
           </div>
+
+          <!-- VOICE PANEL -->
+          <div class="voice-panel">
+            <div class="voice-row">
+              <button type="button" class="btn btn-rec btn-sm" id="rec-btn-${idx}" onclick="toggleVoiceRecording(${idx})">
+                ${it.audioDataUrl ? 'הקלט מחדש' : 'הקלט הערה קולית'}
+              </button>
+              ${it.audioDataUrl ? `<button type="button" class="btn btn-ai btn-sm" onclick="parseSingleGenItem(${idx})">פענח סעיף זה</button>` : ''}
+              ${it.audioDataUrl ? `<button type="button" class="btn btn-outline btn-sm" onclick="deleteGenAudio(${idx})">מחק שמע</button>` : ''}
+            </div>
+            ${it.audioDataUrl ? `
+              <div class="audio-wrap">
+                <audio controls src="${it.audioDataUrl}"></audio>
+              </div>` : ''}
+            ${it.transcript ? `<div class="transcript-box"><strong>תמלול מקורי:</strong> ${escHtml(it.transcript)}</div>` : ''}
+          </div>
+
           <div class="grid-2">
             <div class="field">
               <label>מיקום / נושא</label>
-              <input type="text" value="${esc(it.location)}" placeholder="למשל: כללי / לוח ראשי / לוח גנרטור" oninput="genData.items[${idx}].location=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
+              <input type="text" value="${escAttr(it.location)}" placeholder="למשל: כללי / לוח ראשי / תא 8" oninput="genData.items[${idx}].location=this.value; idbSet(STORAGE_KEYS.general, genData);" />
             </div>
             <div class="field">
               <label>אחריות</label>
-              <select onchange="genData.items[${idx}].responsibility=this.value; saveJSON(STORAGE_KEYS.general, genData);">
+              <select onchange="genData.items[${idx}].responsibility=this.value; idbSet(STORAGE_KEYS.general, genData);">
                 <option value="קבלן" ${it.responsibility==='קבלן'?'selected':''}>קבלן</option>
                 <option value="מזמין" ${it.responsibility==='מזמין'?'selected':''}>מזמין</option>
                 <option value="יועץ" ${it.responsibility==='יועץ'?'selected':''}>יועץ</option>
@@ -1272,14 +1789,25 @@
               </select>
             </div>
           </div>
+
           <div class="field">
             <label>תיאור ממצא / הנחייה</label>
-            <textarea oninput="genData.items[${idx}].instruction=this.value; saveJSON(STORAGE_KEYS.general, genData);">${esc(it.instruction)}</textarea>
+            <textarea placeholder="יתמלא אוטומטית מההקלטה או בהקלדה ידנית..." oninput="genData.items[${idx}].instruction=this.value; idbSet(STORAGE_KEYS.general, genData);">${escAttr(it.instruction)}</textarea>
           </div>
+
           <div class="field">
-            <label>תמונה לסעיף (צלם או בחר מהגלריה)</label>
-            <input type="file" accept="image/*" onchange="uploadGenPhoto(event, ${idx})" />
-            ${it.photo ? `<img src="${it.photo}" class="photo-preview" alt="תמונת סעיף" /><button class="btn btn-outline btn-sm" style="margin-top:6px;width:fit-content;" onclick="genData.items[${idx}].photo=''; saveJSON(STORAGE_KEYS.general, genData); renderGeneral();">הסר תמונה</button>` : ''}
+            <label>תמונה לסעיף</label>
+            <div class="photo-btns">
+              <label class="btn btn-outline btn-sm file-btn-label">
+                צלם תמונה
+                <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="uploadGenPhoto(event, ${idx})" />
+              </label>
+              <label class="btn btn-outline btn-sm file-btn-label">
+                בחר מהגלריה
+                <input type="file" accept="image/*" class="hidden-input" onchange="uploadGenPhoto(event, ${idx})" />
+              </label>
+            </div>
+            ${it.photo ? `<img src="${it.photo}" class="photo-preview" alt="תמונת סעיף" /><button class="btn btn-outline btn-sm" style="margin-top:6px;width:fit-content;" onclick="genData.items[${idx}].photo=''; idbSet(STORAGE_KEYS.general, genData); renderGeneral();">הסר תמונה</button>` : ''}
           </div>
         `;
         iList.appendChild(box);
@@ -1291,48 +1819,54 @@
       genData.code = document.getElementById('gen-code').value;
       genData.date = document.getElementById('gen-date').value;
       genData.scope = document.getElementById('gen-scope').value;
-      saveJSON(STORAGE_KEYS.general, genData);
+      idbSet(STORAGE_KEYS.general, genData);
     }
 
     function addGenParticipant() {
       genData.participants.push({ name: '', company: '' });
-      saveJSON(STORAGE_KEYS.general, genData);
+      idbSet(STORAGE_KEYS.general, genData);
       renderGeneral();
     }
 
     function removeGenParticipant(idx) {
       genData.participants.splice(idx, 1);
-      saveJSON(STORAGE_KEYS.general, genData);
+      idbSet(STORAGE_KEYS.general, genData);
       renderGeneral();
     }
 
-    function addGenItem() {
-      genData.items.push({ location: 'כללי', instruction: '', responsibility: 'קבלן', photo: '', fixDate: '', performer: '' });
-      saveJSON(STORAGE_KEYS.general, genData);
+    function addGenItem(scrollToNew) {
+      genData.items.push(createEmptyGenItem());
+      idbSet(STORAGE_KEYS.general, genData);
       renderGeneral();
+      if (scrollToNew) {
+        const el = document.getElementById(`gen-item-box-${genData.items.length - 1}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     function removeGenItem(idx) {
       if (!confirm('למחוק את סעיף #' + (idx + 1) + '?')) return;
+      if (recordingIdx === idx) stopVoiceRecording();
       genData.items.splice(idx, 1);
-      saveJSON(STORAGE_KEYS.general, genData);
+      idbSet(STORAGE_KEYS.general, genData);
       renderGeneral();
     }
 
     function uploadGenPhoto(event, idx) {
       const file = event.target.files[0];
       if (!file) return;
-      compressImageFile(file, 800, 0.72, dataUrl => {
+      compressImageFile(file, 900, 0.76, dataUrl => {
         genData.items[idx].photo = dataUrl;
-        saveJSON(STORAGE_KEYS.general, genData);
+        idbSet(STORAGE_KEYS.general, genData);
         renderGeneral();
       });
     }
 
     function resetGeneralReport() {
-      if (!confirm('למחוק את כל הנתונים בדוח הכללי ולהתחיל דוח חדש?')) return;
+      if (!confirm('למחוק את כל הנתונים, ההקלטות והתמונות בדוח הכללי ולהתחיל דוח חדש?')) return;
+      if (recordingIdx !== -1) stopVoiceRecording();
       genData = createDefaultGeneral();
-      saveJSON(STORAGE_KEYS.general, genData);
+      idbSet(STORAGE_KEYS.general, genData);
       renderGeneral();
     }
 
@@ -1366,15 +1900,15 @@
         box.innerHTML = `
           <div class="item-head"><span>${b.num}. ${b.title}</span></div>
           <div class="grid-3">
-            <div class="field"><label>יצרן</label><input type="text" value="${esc(data.mfr)}" oninput="updateBreaker('${b.id}','mfr',this.value)" /></div>
-            <div class="field"><label>דגם</label><input type="text" value="${esc(data.model)}" oninput="updateBreaker('${b.id}','model',this.value)" /></div>
-            <div class="field"><label>זרם נקוב (A)</label><input type="text" value="${esc(data.inA)}" oninput="updateBreaker('${b.id}','inA',this.value)" /></div>
+            <div class="field"><label>יצרן</label><input type="text" value="${escAttr(data.mfr)}" oninput="updateBreaker('${b.id}','mfr',this.value)" /></div>
+            <div class="field"><label>דגם</label><input type="text" value="${escAttr(data.model)}" oninput="updateBreaker('${b.id}','model',this.value)" /></div>
+            <div class="field"><label>זרם נקוב (A)</label><input type="text" value="${escAttr(data.inA)}" oninput="updateBreaker('${b.id}','inA',this.value)" /></div>
           </div>
           <div class="grid-4">
-            <div class="field"><label>L (A)</label><input type="text" value="${esc(data.L)}" oninput="updateBreaker('${b.id}','L',this.value)" /></div>
-            <div class="field"><label>S (A)</label><input type="text" value="${esc(data.S)}" oninput="updateBreaker('${b.id}','S',this.value)" /></div>
-            <div class="field"><label>I (A)</label><input type="text" value="${esc(data.I)}" oninput="updateBreaker('${b.id}','I',this.value)" /></div>
-            <div class="field"><label>G (A)</label><input type="text" value="${esc(data.G)}" oninput="updateBreaker('${b.id}','G',this.value)" /></div>
+            <div class="field"><label>L (A)</label><input type="text" value="${escAttr(data.L)}" oninput="updateBreaker('${b.id}','L',this.value)" /></div>
+            <div class="field"><label>S (A)</label><input type="text" value="${escAttr(data.S)}" oninput="updateBreaker('${b.id}','S',this.value)" /></div>
+            <div class="field"><label>I (A)</label><input type="text" value="${escAttr(data.I)}" oninput="updateBreaker('${b.id}','I',this.value)" /></div>
+            <div class="field"><label>G (A)</label><input type="text" value="${escAttr(data.G)}" oninput="updateBreaker('${b.id}','G',this.value)" /></div>
           </div>
         `;
         bCont.appendChild(box);
@@ -1390,24 +1924,24 @@
         card.innerHTML = `
           <h4>${l.title}</h4>
           <div class="grid-4">
-            <div class="field"><label>Zph1-e (mΩ)</label><input type="text" value="${esc(d.z1e)}" oninput="updateLoop('${l.id}','z1e',this.value)" /></div>
-            <div class="field"><label>Isc L1-E (kA)</label><input type="text" value="${esc(d.i1e)}" oninput="updateLoop('${l.id}','i1e',this.value)" /></div>
-            <div class="field"><label>Zph1-n (mΩ)</label><input type="text" value="${esc(d.z1n)}" oninput="updateLoop('${l.id}','z1n',this.value)" /></div>
-            <div class="field"><label>Isc L1-N (kA)</label><input type="text" value="${esc(d.i1n)}" oninput="updateLoop('${l.id}','i1n',this.value)" /></div>
+            <div class="field"><label>Zph1-e (mΩ)</label><input type="text" value="${escAttr(d.z1e)}" oninput="updateLoop('${l.id}','z1e',this.value)" /></div>
+            <div class="field"><label>Isc L1-E (kA)</label><input type="text" value="${escAttr(d.i1e)}" oninput="updateLoop('${l.id}','i1e',this.value)" /></div>
+            <div class="field"><label>Zph1-n (mΩ)</label><input type="text" value="${escAttr(d.z1n)}" oninput="updateLoop('${l.id}','z1n',this.value)" /></div>
+            <div class="field"><label>Isc L1-N (kA)</label><input type="text" value="${escAttr(d.i1n)}" oninput="updateLoop('${l.id}','i1n',this.value)" /></div>
 
-            <div class="field"><label>Zph2-e (mΩ)</label><input type="text" value="${esc(d.z2e)}" oninput="updateLoop('${l.id}','z2e',this.value)" /></div>
-            <div class="field"><label>Isc L2-E (kA)</label><input type="text" value="${esc(d.i2e)}" oninput="updateLoop('${l.id}','i2e',this.value)" /></div>
-            <div class="field"><label>Zph2-n (mΩ)</label><input type="text" value="${esc(d.z2n)}" oninput="updateLoop('${l.id}','z2n',this.value)" /></div>
-            <div class="field"><label>Isc L2-N (kA)</label><input type="text" value="${esc(d.i2n)}" oninput="updateLoop('${l.id}','i2n',this.value)" /></div>
+            <div class="field"><label>Zph2-e (mΩ)</label><input type="text" value="${escAttr(d.z2e)}" oninput="updateLoop('${l.id}','z2e',this.value)" /></div>
+            <div class="field"><label>Isc L2-E (kA)</label><input type="text" value="${escAttr(d.i2e)}" oninput="updateLoop('${l.id}','i2e',this.value)" /></div>
+            <div class="field"><label>Zph2-n (mΩ)</label><input type="text" value="${escAttr(d.z2n)}" oninput="updateLoop('${l.id}','z2n',this.value)" /></div>
+            <div class="field"><label>Isc L2-N (kA)</label><input type="text" value="${escAttr(d.i2n)}" oninput="updateLoop('${l.id}','i2n',this.value)" /></div>
 
-            <div class="field"><label>Zph3-e (mΩ)</label><input type="text" value="${esc(d.z3e)}" oninput="updateLoop('${l.id}','z3e',this.value)" /></div>
-            <div class="field"><label>Isc L3-E (kA)</label><input type="text" value="${esc(d.i3e)}" oninput="updateLoop('${l.id}','i3e',this.value)" /></div>
-            <div class="field"><label>Zph3-n (mΩ)</label><input type="text" value="${esc(d.z3n)}" oninput="updateLoop('${l.id}','z3n',this.value)" /></div>
-            <div class="field"><label>Isc L3-N (kA)</label><input type="text" value="${esc(d.i3n)}" oninput="updateLoop('${l.id}','i3n',this.value)" /></div>
+            <div class="field"><label>Zph3-e (mΩ)</label><input type="text" value="${escAttr(d.z3e)}" oninput="updateLoop('${l.id}','z3e',this.value)" /></div>
+            <div class="field"><label>Isc L3-E (kA)</label><input type="text" value="${escAttr(d.i3e)}" oninput="updateLoop('${l.id}','i3e',this.value)" /></div>
+            <div class="field"><label>Zph3-n (mΩ)</label><input type="text" value="${escAttr(d.z3n)}" oninput="updateLoop('${l.id}','z3n',this.value)" /></div>
+            <div class="field"><label>Isc L3-N (kA)</label><input type="text" value="${escAttr(d.i3n)}" oninput="updateLoop('${l.id}','i3n',this.value)" /></div>
 
-            <div class="field"><label>Zph-ph (mΩ)</label><input type="text" value="${esc(d.zpp)}" oninput="updateLoop('${l.id}','zpp',this.value)" /></div>
-            <div class="field"><label>Isc 2ph (kA)</label><input type="text" value="${esc(d.i2p)}" oninput="updateLoop('${l.id}','i2p',this.value)" /></div>
-            <div class="field"><label>Isc 3ph (kA)</label><input type="text" value="${esc(d.i3p)}" oninput="updateLoop('${l.id}','i3p',this.value)" /></div>
+            <div class="field"><label>Zph-ph (mΩ)</label><input type="text" value="${escAttr(d.zpp)}" oninput="updateLoop('${l.id}','zpp',this.value)" /></div>
+            <div class="field"><label>Isc 2ph (kA)</label><input type="text" value="${escAttr(d.i2p)}" oninput="updateLoop('${l.id}','i2p',this.value)" /></div>
+            <div class="field"><label>Isc 3ph (kA)</label><input type="text" value="${escAttr(d.i3p)}" oninput="updateLoop('${l.id}','i3p',this.value)" /></div>
           </div>
           <div class="grid-3" style="margin-top:8px;">
             <div class="field">
@@ -1441,20 +1975,13 @@
         lCont.appendChild(card);
       });
 
-      // 3. Checklists
       renderUpsChecklists();
-
-      // 4. EBB
       renderUpsEbb();
-
-      // 5. Insulation OK buttons
       renderStatusGroup(document.getElementById('ups-ins-ok-group'), upsData.insOk, val => {
         upsData.insOk = val;
-        saveJSON(STORAGE_KEYS.ups, upsData);
+        idbSet(STORAGE_KEYS.ups, upsData);
         buildUpsDynamicUI();
       });
-
-      // 6. Photos
       renderUpsPhotos();
     }
 
@@ -1485,7 +2012,7 @@
         allPBtn.textContent = 'סמן הכל P';
         allPBtn.onclick = () => {
           g.items.forEach((_, idx) => { upsData.checks[`${g.id}_${idx}`] = 'P'; });
-          saveJSON(STORAGE_KEYS.ups, upsData);
+          idbSet(STORAGE_KEYS.ups, upsData);
           renderUpsChecklists();
         };
         header.appendChild(allPBtn);
@@ -1500,7 +2027,7 @@
           grp.className = 'status-group';
           renderStatusGroup(grp, upsData.checks[key] || '', val => {
             upsData.checks[key] = val;
-            saveJSON(STORAGE_KEYS.ups, upsData);
+            idbSet(STORAGE_KEYS.ups, upsData);
             renderUpsChecklists();
           });
           row.appendChild(grp);
@@ -1528,7 +2055,7 @@
         grp.className = 'status-group';
         renderStatusGroup(grp, item.status, val => {
           upsData.ebb[idx].status = val;
-          saveJSON(STORAGE_KEYS.ups, upsData);
+          idbSet(STORAGE_KEYS.ups, upsData);
           renderUpsEbb();
         });
 
@@ -1540,7 +2067,7 @@
         noteIn.style.padding = '6px 8px';
         noteIn.oninput = () => {
           upsData.ebb[idx].note = noteIn.value;
-          saveJSON(STORAGE_KEYS.ups, upsData);
+          idbSet(STORAGE_KEYS.ups, upsData);
         };
 
         rightWrap.appendChild(grp);
@@ -1568,19 +2095,28 @@
           <div class="grid-2">
             <div class="field">
               <label>סוג תמונה</label>
-              <select onchange="upsData.photos[${idx}].type=this.value; saveJSON(STORAGE_KEYS.ups, upsData);">
+              <select onchange="upsData.photos[${idx}].type=this.value; idbSet(STORAGE_KEYS.ups, upsData);">
                 <option value="תיעוד" ${ph.type==='תיעוד'?'selected':''}>תיעוד תקין</option>
                 <option value="תקלה / ליקוי" ${ph.type==='תקלה / ליקוי'?'selected':''}>תקלה / ליקוי</option>
               </select>
             </div>
             <div class="field">
               <label>תיאור קצר</label>
-              <input type="text" value="${esc(ph.caption)}" placeholder="למשל: לוחית זיהוי UPS / כוונון מפסק ראשי" oninput="upsData.photos[${idx}].caption=this.value; saveJSON(STORAGE_KEYS.ups, upsData);" />
+              <input type="text" value="${escAttr(ph.caption)}" placeholder="למשל: לוחית זיהוי UPS / כוונון מפסק ראשי" oninput="upsData.photos[${idx}].caption=this.value; idbSet(STORAGE_KEYS.ups, upsData);" />
             </div>
           </div>
           <div class="field">
-            <label>קובץ תמונה</label>
-            <input type="file" accept="image/*" onchange="uploadUpsPhoto(event, ${idx})" />
+            <label>תמונה</label>
+            <div class="photo-btns">
+              <label class="btn btn-outline btn-sm file-btn-label">
+                צלם תמונה
+                <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="uploadUpsPhoto(event, ${idx})" />
+              </label>
+              <label class="btn btn-outline btn-sm file-btn-label">
+                בחר מהגלריה
+                <input type="file" accept="image/*" class="hidden-input" onchange="uploadUpsPhoto(event, ${idx})" />
+              </label>
+            </div>
             ${ph.dataUrl ? `<img src="${ph.dataUrl}" class="photo-preview" alt="תמונה" />` : ''}
           </div>
         `;
@@ -1590,34 +2126,34 @@
 
     function addUpsPhoto() {
       upsData.photos.push({ type: 'תיעוד', caption: '', dataUrl: '' });
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
       renderUpsPhotos();
     }
 
     function removeUpsPhoto(idx) {
       upsData.photos.splice(idx, 1);
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
       renderUpsPhotos();
     }
 
     function uploadUpsPhoto(event, idx) {
       const file = event.target.files[0];
       if (!file) return;
-      compressImageFile(file, 800, 0.72, dataUrl => {
+      compressImageFile(file, 900, 0.76, dataUrl => {
         upsData.photos[idx].dataUrl = dataUrl;
-        saveJSON(STORAGE_KEYS.ups, upsData);
+        idbSet(STORAGE_KEYS.ups, upsData);
         renderUpsPhotos();
       });
     }
 
     function updateBreaker(id, key, val) {
       upsData.breakers[id][key] = val;
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
     }
 
     function updateLoop(id, key, val) {
       upsData.loops[id][key] = val;
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
     }
 
     function loadUpsFieldsToDOM() {
@@ -1627,11 +2163,7 @@
         if (id === 'ups-notes') { el.value = upsData.notes || ''; return; }
         if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
           const key = id.replace('ups-', '');
-          if (upsData.fields && upsData.fields[key] !== undefined) {
-            el.value = upsData.fields[key];
-          } else {
-            el.value = '';
-          }
+          el.value = (upsData.fields && upsData.fields[key] !== undefined) ? upsData.fields[key] : '';
         }
       });
     }
@@ -1646,13 +2178,13 @@
           upsData.fields[id.replace('ups-', '')] = el.value;
         }
       });
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
     }
 
     function resetUpsReport() {
       if (!confirm('למחוק את כל הנתונים בדוח האל-פסק ולהתחיל דוח חדש?')) return;
       upsData = createDefaultUps();
-      saveJSON(STORAGE_KEYS.ups, upsData);
+      idbSet(STORAGE_KEYS.ups, upsData);
       loadUpsFieldsToDOM();
       buildUpsDynamicUI();
       setUpsStep(1);
@@ -1672,16 +2204,16 @@
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = ev => {
+      reader.onload = async ev => {
         try {
           const parsed = JSON.parse(ev.target.result);
           if (type === 'general') {
             genData = Object.assign(createDefaultGeneral(), parsed);
-            saveJSON(STORAGE_KEYS.general, genData);
+            await idbSet(STORAGE_KEYS.general, genData);
             renderGeneral();
           } else {
             upsData = Object.assign(createDefaultUps(), parsed);
-            saveJSON(STORAGE_KEYS.ups, upsData);
+            await idbSet(STORAGE_KEYS.ups, upsData);
             loadUpsFieldsToDOM();
             buildUpsDynamicUI();
           }
@@ -1697,7 +2229,7 @@
     function brandHeaderHTML() {
       const logoPart = settings.logo
         ? `<img src="${settings.logo}" alt="לוגו" />`
-        : `<div style="font-size:16pt;font-weight:700;color:#1e293b;">${esc(settings.bizName)}</div>`;
+        : `<div style="font-size:16pt;font-weight:700;color:#1e293b;">${escHtml(settings.bizName)}</div>`;
       return `<div class="p-header-logo">${logoPart}</div>`;
     }
 
@@ -1707,7 +2239,7 @@
       if (settings.phone) parts.push('טלפון: ' + settings.phone);
       if (settings.email) parts.push('דוא"ל: ' + settings.email);
       if (settings.address) parts.push('כתובת: ' + settings.address);
-      return `<div class="p-footer-bar">${esc(parts.join('  |  '))}</div>`;
+      return `<div class="p-footer-bar">${escHtml(parts.join('  |  '))}</div>`;
     }
 
     function stampHTML() {
@@ -1716,10 +2248,10 @@
       }
       return `
         <div class="p-stamp-box" style="border:1px solid #475569;padding:8px 14px;display:inline-block;text-align:center;">
-          <strong>${esc(settings.bizName)}</strong><br/>
-          ${settings.companyId ? 'ע.מ ' + esc(settings.companyId) + '<br/>' : ''}
-          ${settings.elecLicense ? 'חשמלאי הנדסאי ' + esc(settings.elecLicense) + '<br/>' : ''}
-          ${settings.phone ? esc(settings.phone) : ''}
+          <strong>${escHtml(settings.bizName)}</strong><br/>
+          ${settings.companyId ? 'ע.מ ' + escHtml(settings.companyId) + '<br/>' : ''}
+          ${settings.elecLicense ? 'חשמלאי הנדסאי ' + escHtml(settings.elecLicense) + '<br/>' : ''}
+          ${settings.phone ? escHtml(settings.phone) : ''}
         </div>`;
     }
 
@@ -1733,7 +2265,7 @@
         return `
           <tr class="p-avoid-break">
             <td class="p-center">${idx + 1}</td>
-            <td><strong>${valOrDash(it.location)}</strong><br/><span style="font-size:8pt;color:#475569;">${esc(trackNum)}</span></td>
+            <td><strong>${valOrDash(it.location)}</strong><br/><span style="font-size:8pt;color:#475569;">${escHtml(trackNum)}</span></td>
             <td>${valOrDash(it.instruction)}</td>
             <td class="p-center">${valOrDash(it.responsibility)}</td>
             <td class="p-img-cell">${it.photo ? `<img src="${it.photo}" alt="תמונה" />` : '—'}</td>
@@ -1796,7 +2328,6 @@
     function printUpsReport() {
       const f = upsData.fields || {};
 
-      // Page 1: Cover
       const coverHTML = `
         <div class="p-cover p-page-break">
           <div>
@@ -1829,13 +2360,13 @@
 
             <div class="p-title-main">
               הבדיקה בוצעה ע"י<br/>
-              ${esc(settings.roleTitle || 'בודק')}
+              ${escHtml(settings.roleTitle || 'בודק')}
             </div>
 
             <table class="p-table" style="width:65%;margin:16px auto;">
               <tr><th>פרטי מבצע הבדיקה:</th><td>${valOrDash(settings.inspectorName)}</td></tr>
               <tr><th>רישיון חשמלאי הנדסאי מס':</th><td>${valOrDash(settings.elecLicense)}</td></tr>
-              ${settings.inspectorLicense ? `<tr><th>רישיון בודק מס':</th><td>${esc(settings.inspectorLicense)}</td></tr>` : ''}
+              ${settings.inspectorLicense ? `<tr><th>רישיון בודק מס':</th><td>${escHtml(settings.inspectorLicense)}</td></tr>` : ''}
             </table>
           </div>
           <div>
@@ -1845,7 +2376,6 @@
         </div>
       `;
 
-      // Page 2: Technical Specs & Breakers
       const techRows = [
         ['1', 'הספק מערכת האל-פסק (kVA)', f.t1],
         ['2', 'יצרן', f.t2],
@@ -1886,7 +2416,6 @@
           </tr>`;
       }).join('');
 
-      // Loops HTML
       const loopsHTML = UPS_LOOPS_DEF.map(l => {
         const d = upsData.loops[l.id] || {};
         return `
@@ -1926,7 +2455,6 @@
           </div>`;
       }).join('');
 
-      // Checklists HTML
       const checkHTML = UPS_CHECKLIST_GROUPS.map(g => {
         const rows = g.items.map((label, idx) => `
           <tr>
@@ -1940,7 +2468,6 @@
           </div>`;
       }).join('');
 
-      // EBB HTML
       const ebbRows = UPS_EBB_ITEMS.map((label, idx) => {
         const it = upsData.ebb[idx] || {};
         return `
@@ -1952,7 +2479,6 @@
           </tr>`;
       }).join('');
 
-      // Photos HTML
       const validPhotos = (upsData.photos || []).filter(p => p.dataUrl);
       const photosHTML = validPhotos.length ? `
         <div class="p-page-break"></div>
@@ -1962,7 +2488,7 @@
             <div class="p-photo-card">
               <img src="${p.dataUrl}" alt="תמונה ${i + 1}" />
               <div style="margin-top:4px;font-size:9pt;">
-                <strong>${esc(p.type || 'תיעוד')}</strong>${p.caption ? ' - ' + esc(p.caption) : ''}
+                <strong>${escHtml(p.type || 'תיעוד')}</strong>${p.caption ? ' - ' + escHtml(p.caption) : ''}
               </div>
             </div>`).join('')}
         </div>` : '';
@@ -2052,11 +2578,33 @@
       setTimeout(() => window.print(), 150);
     }
 
-    /* ================= INIT ================= */
-    renderSettings();
-    renderGeneral();
-    loadUpsFieldsToDOM();
-    buildUpsDynamicUI();
+    /* ================= INIT & MIGRATION FROM V1 ================= */
+    async function loadOrMigrate(key, fallback) {
+      let data = await idbGet(key);
+      if (!data) {
+        try {
+          const legacyRaw = localStorage.getItem(key);
+          if (legacyRaw) {
+            data = JSON.parse(legacyRaw);
+            await idbSet(key, data);
+          }
+        } catch (e) {}
+      }
+      return data ? Object.assign(fallback, data) : fallback;
+    }
+
+    async function initApp() {
+      settings = await loadOrMigrate(STORAGE_KEYS.settings, { ...DEFAULT_SETTINGS });
+      genData = await loadOrMigrate(STORAGE_KEYS.general, createDefaultGeneral());
+      upsData = await loadOrMigrate(STORAGE_KEYS.ups, createDefaultUps());
+
+      renderSettings();
+      renderGeneral();
+      loadUpsFieldsToDOM();
+      buildUpsDynamicUI();
+    }
+
+    initApp();
   </script>
 </body>
 </html>
