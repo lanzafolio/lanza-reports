@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>לנזה - אפליקציית דוחות בדיקה ושטח</title>
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #b45309;
+      --accent-light: #fef3c7;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --ok: #15803d;
+      --ok-bg: #dcfce7;
+      --fail: #b91c1c;
+      --fail-bg: #fee2e2;
+      --nc: #a16207;
+      --nc-bg: #fef9c3;
+      --na: #475569;
+      --na-bg: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-bottom: 80px;
+    }
+
+    /* Top App Bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-ok { background: var(--ok); color: #fff; }
+    .btn-danger { background: var(--fail); color: #fff; }
+    .btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--border); }
+    .btn-ghost { background: rgba(255,255,255,0.14); color: #fff; padding: 7px 11px; font-size: 0.85rem; }
+    .btn-sm { padding: 6px 10px; font-size: 0.82rem; border-radius: 8px; }
+    .btn-block { width: 100%; }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      margin: 0 0 12px 0;
+      font-size: 1.05rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--accent-light);
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Home Screen */
+    .brand-hero {
+      text-align: center;
+      padding: 20px 14px;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .brand-hero img {
+      max-height: 90px;
+      max-width: 100%;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    .brand-hero h2 { margin: 4px 0; font-size: 1.3rem; color: var(--primary); }
+    .brand-hero p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 640px) {
+      .home-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .menu-btn {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: right;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .menu-btn:hover, .menu-btn:focus {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(180,83,9,0.12);
+    }
+
+    .menu-btn strong { font-size: 1.12rem; color: var(--primary); }
+    .menu-btn span { font-size: 0.88rem; color: var(--muted); }
+    .menu-btn.disabled { opacity: 0.65; border-style: dashed; cursor: default; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--accent-light);
+      color: var(--accent);
+      width: fit-content;
+    }
+
+    /* Form Controls */
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    @media (min-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+      .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+      .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+    .field label { font-size: 0.85rem; font-weight: 600; color: #334155; }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="tel"],
+    input[type="email"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    textarea { min-height: 74px; resize: vertical; }
+
+    /* Step Tabs for UPS */
+    .steps-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 0 10px 0;
+      margin-bottom: 10px;
+      scrollbar-width: thin;
+    }
+
+    .step-tab {
+      flex: 0 0 auto;
+      padding: 8px 13px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .step-tab.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .ups-step { display: none; }
+    .ups-step.active { display: block; }
+
+    /* Checklist Buttons */
+    .check-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    @media (min-width: 640px) {
+      .check-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .check-label { font-size: 0.92rem; flex: 1; }
+
+    .status-group {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .st-btn {
+      min-width: 44px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .st-btn.sel-P { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+    .st-btn.sel-F { background: var(--fail-bg); color: var(--fail); border-color: var(--fail); }
+    .st-btn.sel-NC { background: var(--nc-bg); color: var(--nc); border-color: var(--nc); }
+    .st-btn.sel-NA { background: var(--na-bg); color: var(--na); border-color: var(--na); }
+
+    /* Repeater Items */
+    .item-box {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .photo-preview {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 8px;
+      display: block;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .img-setting-preview {
+      max-height: 110px;
+      max-width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      background: #fff;
+      margin-top: 8px;
+      display: block;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 90;
+    }
+
+    .save-toast {
+      position: fixed;
+      bottom: 68px;
+      left: 16px;
+      background: #0f172a;
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      z-index: 200;
+    }
+
+    .save-toast.show { opacity: 0.92; }
+
+    .small-hint { font-size: 0.82rem; color: var(--muted); margin: 4px 0 8px 0; }
+
+    .loop-subcard {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+      background: #f8fafc;
+    }
+
+    .loop-subcard h4 {
+      margin: 0 0 10px 0;
+      color: var(--accent);
+      font-size: 0.98rem;
+    }
+
+    /* ================= PRINT / PDF STYLES ================= */
+    #print-area { display: none; }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 11mm;
+      }
+
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .no-print { display: none !important; }
+      #print-area { display: block !important; font-size: 10.5pt; }
+
+      .p-page-break { page-break-after: always; break-after: page; }
+      .p-avoid-break { page-break-inside: avoid; break-inside: avoid; }
+
+      .p-cover {
+        border: 2px solid #7f1d1d;
+        padding: 18px;
+        min-height: 262mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .p-header-logo {
+        text-align: center;
+        border-bottom: 2px solid #b45309;
+        padding-bottom: 8px;
+        margin-bottom: 14px;
+      }
+
+      .p-header-logo img {
+        max-height: 75px;
+        max-width: 100%;
+        object-fit: contain;
+      }
+
+      .p-title-main {
+        text-align: center;
+        font-size: 18pt;
+        font-weight: 700;
+        margin: 18px 0;
+        color: #1e293b;
+      }
+
+      .p-section-title {
+        background: #1e293b;
+        color: #fff;
+        padding: 5px 10px;
+        font-weight: 700;
+        font-size: 11pt;
+        margin: 12px 0 6px 0;
+      }
+
+      .p-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+        font-size: 9.5pt;
+      }
+
+      .p-table th, .p-table td {
+        border: 1px solid #475569;
+        padding: 4px 6px;
+        text-align: right;
+        vertical-align: top;
+      }
+
+      .p-table th {
+        background: #e2e8f0;
+        font-weight: 700;
+      }
+
+      .p-center { text-align: center !important; }
+
+      .p-img-cell img {
+        max-width: 135px;
+        max-height: 110px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .p-photo-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .p-photo-card {
+        border: 1px solid #64748b;
+        padding: 6px;
+        text-align: center;
+        break-inside: avoid;
+      }
+
+      .p-photo-card img {
+        max-width: 100%;
+        max-height: 165px;
+        object-fit: contain;
+      }
+
+      .p-footer-bar {
+        border-top: 2px solid #7f1d1d;
+        background: #7f1d1d;
+        color: #fff;
+        padding: 8px 10px;
+        font-size: 9pt;
+        text-align: center;
+        margin-top: 12px;
+      }
+
+      .p-stamp-box {
+        margin-top: 16px;
+        text-align: left;
+        break-inside: avoid;
+      }
+
+      .p-stamp-box img {
+        max-height: 105px;
+        max-width: 240px;
+        object-fit: contain;
+      }
+
+      .st-P { color: #15803d; font-weight: 700; }
+      .st-F { color: #b91c1c; font-weight: 700; }
+      .st-NC { color: #a16207; font-weight: 700; }
+      .st-NA { color: #475569; font-weight: 700; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar no-print">
+    <h1 id="topbar-title">לנזה - דוחות בדיקה ושטח</h1>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btn-home" style="display:none;" onclick="showScreen('home')">מסך בית</button>
+      <button class="btn btn-ghost" onclick="showScreen('settings')">הגדרות</button>
+    </div>
+  </header>
+
+  <div class="save-toast no-print" id="save-toast">נשמר בטלפון</div>
+
+  <main class="container no-print">
+
+    <!-- ==================== SCREEN: HOME ==================== -->
+    <section id="screen-home" class="screen active">
+      <div class="brand-hero">
+        <img id="home-logo" style="display:none;" alt="לוגו העסק" />
+        <h2 id="home-biz-name">לנזה - בדיקות, ייעוץ ותכנון מתקני חשמל</h2>
+        <p>בחר את סוג הדוח שברצונך למלא בשטח</p>
+      </div>
+
+      <div class="home-grid">
+        <button class="menu-btn" onclick="showScreen('general')">
+          <span class="badge">סגנון 1</span>
+          <strong>דוח סיור / פיקוח כללי</strong>
+          <span>רישום ממצאים, הנחיות, גורם אחראי, משתתפים וצילום תמונות מהשטח לכל סעיף.</span>
+        </button>
+
+        <button class="menu-btn" onclick="showScreen('ups')">
+          <span class="badge">סגנון 2</span>
+          <strong>דוח בדיקת מערכת אל-פסק (UPS)</strong>
+          <span>שער רשמי, פרטים טכניים, 5 מפסקים (L/S/I/G), לולאות תקלה וקצר, בדיקות, בידוד ותמונות.</span>
+        </button>
+
+        <button class="menu-btn" onclick="showScreen('settings')">
+          <span class="badge">הגדרה חד-פעמית</span>
+          <strong>הגדרות עסק, לוגו וחותמת</strong>
+          <span>העלאת תמונת הלוגו והחותמת, ועדכון פרטי הרישיון והקשר שיופיעו בכל PDF.</span>
+        </button>
+
+        <div class="menu-btn disabled">
+          <span class="badge">מוכן להרחבה</span>
+          <strong>סוגי דוחות נוספים (בהמשך)</strong>
+          <span>כאן יתווספו כפתורים לדוחות הנוספים שתסרוק ותעלה בהמשך.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN: SETTINGS ==================== -->
+    <section id="screen-settings" class="screen">
+      <div class="card">
+        <h3 class="card-title">פרטי העסק והבודק (מופיעים בכל דוח)</h3>
+        <div class="grid-2">
+          <div class="field">
+            <label>שם העסק</label>
+            <input type="text" id="set-bizName" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>תואר מבצע הבדיקה בשער</label>
+            <input type="text" id="set-roleTitle" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>שם מבצע הבדיקה</label>
+            <input type="text" id="set-inspectorName" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>מספר ע.מ / ח.פ</label>
+            <input type="text" id="set-companyId" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>מספר רישיון חשמלאי הנדסאי</label>
+            <input type="text" id="set-elecLicense" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>מספר רישיון בודק (להשלמה בעתיד)</label>
+            <input type="text" id="set-inspectorLicense" placeholder="אופציונלי" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>טלפון</label>
+            <input type="tel" id="set-phone" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>דוא"ל (אופציונלי)</label>
+            <input type="email" id="set-email" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" />
+          </div>
+          <div class="field">
+            <label>כתובת (אופציונלי)</label>
+            <input type="text" id="set-address" placeholder="להשלמה לפי הצורך" oninput="saveSettings()" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">לוגו וחותמת (נשמרים קבוע במכשיר)</h3>
+        <p class="small-hint">בחר את התמונות פעם אחת מהגלריה או מהמחשב. הן יופיעו אוטומטית בכל דוח PDF שתפיק.</p>
+        <div class="grid-2">
+          <div class="field">
+            <label>תמונת לוגו (לראש הדוח)</label>
+            <input type="file" accept="image/*" onchange="handleBrandUpload(event, 'logo')" />
+            <img id="preview-logo" class="img-setting-preview" style="display:none;" alt="תצוגה מקדימה לוגו" />
+            <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="clearBrandImage('logo')">הסר לוגו</button>
+          </div>
+          <div class="field">
+            <label>תמונת חותמת וחתימה (לתחתית הדוח)</label>
+            <input type="file" accept="image/*" onchange="handleBrandUpload(event, 'stamp')" />
+            <img id="preview-stamp" class="img-setting-preview" style="display:none;" alt="תצוגה מקדימה חותמת" />
+            <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="clearBrandImage('stamp')">הסר חותמת</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="showScreen('home')">שמור וחזור למסך הבית</button>
+    </section>
+
+    <!-- ==================== SCREEN: GENERAL REPORT ==================== -->
+    <section id="screen-general" class="screen">
+      <div class="card">
+        <h3 class="card-title">פרטי הסיור / הדוח הכללי</h3>
+        <div class="grid-3">
+          <div class="field">
+            <label>שם הפרויקט / כותרת הדוח</label>
+            <input type="text" id="gen-title" placeholder="למשל: בדיקת לוחות חשמל - פיקוח" oninput="saveGen()" />
+          </div>
+          <div class="field">
+            <label>מספר פרויקט / קוד מעקב</label>
+            <input type="text" id="gen-code" placeholder="למשל: 675" oninput="saveGen()" />
+          </div>
+          <div class="field">
+            <label>תאריך סיור</label>
+            <input type="date" id="gen-date" oninput="saveGen()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>מהלך הסיור ותכולות שנבדקו</label>
+          <textarea id="gen-scope" placeholder="למשל: לוח ראשי A1-EME, לוח גנרטור EG-B1..." oninput="saveGen()"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">
+          <span>משתתפים בסיור</span>
+          <button class="btn btn-outline btn-sm" onclick="addGenParticipant()">+ הוסף משתתף</button>
+        </h3>
+        <div id="gen-participants-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">
+          <span>ממצאים, הנחיות ותמונות</span>
+          <button class="btn btn-accent btn-sm" onclick="addGenItem()">+ הוסף סעיף ממצא</button>
+        </h3>
+        <div id="gen-items-list"></div>
+        <button class="btn btn-outline btn-block" onclick="addGenItem()">+ הוסף סעיף ממצא נוסף</button>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">הפקה וגיבוי</h3>
+        <div class="grid-3">
+          <button class="btn btn-ok" onclick="printGeneralReport()">הפק דוח PDF</button>
+          <button class="btn btn-outline" onclick="exportDraft('general')">שמור קובץ גיבוי</button>
+          <button class="btn btn-danger" onclick="resetGeneralReport()">נקה לדוח חדש</button>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label>טעינת קובץ גיבוי שמור (JSON)</label>
+          <input type="file" accept=".json" onchange="importDraft(event, 'general')" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN: UPS REPORT ==================== -->
+    <section id="screen-ups" class="screen">
+      <div class="steps-bar" id="ups-steps-bar">
+        <button class="step-tab active" onclick="setUpsStep(1)">1. שער</button>
+        <button class="step-tab" onclick="setUpsStep(2)">2. פרטים טכניים</button>
+        <button class="step-tab" onclick="setUpsStep(3)">3. מפסקים</button>
+        <button class="step-tab" onclick="setUpsStep(4)">4. לולאת תקלה</button>
+        <button class="step-tab" onclick="setUpsStep(5)">5. בדיקות ובידוד</button>
+        <button class="step-tab" onclick="setUpsStep(6)">6. תמונות ו-PDF</button>
+      </div>
+
+      <!-- STEP 1: COVER -->
+      <div id="ups-step-1" class="ups-step active">
+        <div class="card">
+          <h3 class="card-title">שער דוח הבדיקה</h3>
+          <div class="grid-2">
+            <div class="field"><label>תאריך</label><input type="date" id="ups-date" oninput="saveUps()" /></div>
+            <div class="field"><label>מזמין הבדיקה</label><input type="text" id="ups-client" oninput="saveUps()" /></div>
+            <div class="field"><label>שם המתקן</label><input type="text" id="ups-facility" oninput="saveUps()" /></div>
+            <div class="field"><label>טלפון מזמין</label><input type="tel" id="ups-clientPhone" oninput="saveUps()" /></div>
+            <div class="field"><label>סוג הבדיקה</label><input type="text" id="ups-testType" oninput="saveUps()" /></div>
+            <div class="field"><label>חברה</label><input type="text" id="ups-company" oninput="saveUps()" /></div>
+            <div class="field"><label>הזנה במתח</label><input type="text" id="ups-supplyVoltage" placeholder="למשל: 400V / 230V" oninput="saveUps()" /></div>
+            <div class="field"><label>גודל חיבור</label><input type="text" id="ups-connSize" placeholder="למשל: 3x250A" oninput="saveUps()" /></div>
+            <div class="field"><label>הזמנה מתאריך</label><input type="date" id="ups-orderDate" oninput="saveUps()" /></div>
+            <div class="field"><label>מספר הזמנה</label><input type="text" id="ups-orderNum" oninput="saveUps()" /></div>
+          </div>
+          <div class="field"><label>כתובות מייל למשלוח הדו"ח</label><input type="text" id="ups-reportEmails" oninput="saveUps()" /></div>
+        </div>
+      </div>
+
+      <!-- STEP 2: TECHNICAL DETAILS 1-22 -->
+      <div id="ups-step-2" class="ups-step">
+        <div class="card">
+          <h3 class="card-title">פרטים טכניים של מערכת האל-פסק (סעיפים 1–22)</h3>
+          <div class="grid-2">
+            <div class="field"><label>1. הספק מערכת האל-פסק (kVA)</label><input type="text" id="ups-t1" oninput="saveUps()" /></div>
+            <div class="field"><label>2. יצרן</label><input type="text" id="ups-t2" oninput="saveUps()" /></div>
+            <div class="field"><label>3. דגם</label><input type="text" id="ups-t3" oninput="saveUps()" /></div>
+            <div class="field"><label>4. מספר סידורי</label><input type="text" id="ups-t4" oninput="saveUps()" /></div>
+            <div class="field"><label>5א. מתח הזנה</label><input type="text" id="ups-t5in" oninput="saveUps()" /></div>
+            <div class="field"><label>5ב. מתח מוצא</label><input type="text" id="ups-t5out" oninput="saveUps()" /></div>
+            <div class="field"><label>6. סוג המערכת</label><input type="text" id="ups-t6" placeholder="למשל: On-Line Double Conversion" oninput="saveUps()" /></div>
+            <div class="field"><label>7א. מקור ההזנה הראשי - מלוח</label><input type="text" id="ups-t7board" oninput="saveUps()" /></div>
+            <div class="field"><label>7ב. מקור ההזנה הראשי - ממעגל</label><input type="text" id="ups-t7circ" oninput="saveUps()" /></div>
+            <div class="field">
+              <label>8. קיים מעקף תפעולי</label>
+              <select id="ups-t8" onchange="saveUps()"><option value="">-- בחר --</option><option value="כן">כן</option><option value="לא">לא</option></select>
+            </div>
+            <div class="field">
+              <label>9. קיים מעקף לתחזוקה</label>
+              <select id="ups-t9" onchange="saveUps()"><option value="">-- בחר --</option><option value="כן">כן</option><option value="לא">לא</option></select>
+            </div>
+            <div class="field"><label>10א. מקור הזנת המעקף התפעולי - מלוח</label><input type="text" id="ups-t10board" oninput="saveUps()" /></div>
+            <div class="field"><label>10ב. מקור הזנת המעקף התפעולי - ממעגל</label><input type="text" id="ups-t10circ" oninput="saveUps()" /></div>
+            <div class="field"><label>11א. מקור הזנת המעקף לתחזוקה - מלוח</label><input type="text" id="ups-t11board" oninput="saveUps()" /></div>
+            <div class="field"><label>11ב. מקור הזנת המעקף לתחזוקה - ממעגל</label><input type="text" id="ups-t11circ" oninput="saveUps()" /></div>
+            <div class="field"><label>12א. שטח חתך כבל הזנה ראשי (mm²)</label><input type="text" id="ups-t12main" oninput="saveUps()" /></div>
+            <div class="field"><label>12ב. שטח חתך כבל הזנה תפעולי (mm²)</label><input type="text" id="ups-t12op" oninput="saveUps()" /></div>
+            <div class="field"><label>13. שטח חתך כבל הזנה לתחזוקה (mm²)</label><input type="text" id="ups-t13" oninput="saveUps()" /></div>
+            <div class="field"><label>14. שטח חתך מוליכי הארקה (mm²)</label><input type="text" id="ups-t14" oninput="saveUps()" /></div>
+            <div class="field"><label>15. אופן הארקת המערכת</label><input type="text" id="ups-t15" oninput="saveUps()" /></div>
+            <div class="field"><label>16. שטח חתך כבל מוליכי היציאה (mm²)</label><input type="text" id="ups-t16" oninput="saveUps()" /></div>
+            <div class="field"><label>17. מקום התקנת המצברים</label><input type="text" id="ups-t17" oninput="saveUps()" /></div>
+            <div class="field"><label>18. שטח חתך מוליכי המצברים (mm²)</label><input type="text" id="ups-t18" oninput="saveUps()" /></div>
+            <div class="field"><label>19. שיטת הגנה כנגד חשמול במתקן</label><input type="text" id="ups-t19" placeholder="למשל: TN-S / TN-C-S / TT" oninput="saveUps()" /></div>
+            <div class="field"><label>20. שיטת הגנה כנגד חשמול במערכת אל-פסק</label><input type="text" id="ups-t20" oninput="saveUps()" /></div>
+            <div class="field">
+              <label>21א. קיום שנאי מבדל</label>
+              <select id="ups-t21exist" onchange="saveUps()"><option value="">-- בחר --</option><option value="כן">כן</option><option value="לא">לא</option></select>
+            </div>
+            <div class="field"><label>21ב. הספק השנאי (kVA)</label><input type="text" id="ups-t21kva" oninput="saveUps()" /></div>
+            <div class="field"><label>22א. אופן התקנת השנאי המבדל</label><input type="text" id="ups-t22inst" oninput="saveUps()" /></div>
+            <div class="field"><label>22ב. קבוצת חיבורים</label><input type="text" id="ups-t22vec" placeholder="למשל: Dyn11" oninput="saveUps()" /></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: BREAKERS 23-33 -->
+      <div id="ups-step-3" class="ups-step">
+        <div class="card">
+          <h3 class="card-title">נתוני מפסקים וכוונון הגנות (L / S / I / G)</h3>
+          <p class="small-hint">כל ערכי הזרם ביחידות A (אמפר). הנתונים משקפים את המצב לאחר כוונון במידה שבוצע.</p>
+          <div id="ups-breakers-container"></div>
+          <div class="field" style="margin-top:12px;">
+            <label>33. מתקן מוזן בשלמותו מהמערכת</label>
+            <select id="ups-t33" onchange="saveUps()"><option value="">-- בחר --</option><option value="כן">כן</option><option value="לא">לא</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: LOOP IMPEDANCE & SHORT CIRCUIT -->
+      <div id="ups-step-4" class="ups-step">
+        <div class="card">
+          <h3 class="card-title">עכבת לולאת תקלה (mΩ) וזרם קצר צפוי (kA)</h3>
+          <div id="ups-loops-container"></div>
+        </div>
+      </div>
+
+      <!-- STEP 5: CHECKLISTS, EBB & INSULATION -->
+      <div id="ups-step-5" class="ups-step">
+        <div class="card">
+          <h3 class="card-title">פרטי בדיקה נוספים (כללי ומעקפים)</h3>
+          <div class="grid-3">
+            <div class="field"><label>מספר הקטבים במפסק הזנה</label><input type="text" id="ups-poles" placeholder="למשל: 3P / 4P" oninput="saveUps()" /></div>
+            <div class="field"><label>מעקף תפעולי באמצעות</label><input type="text" id="ups-opBypassBy" oninput="saveUps()" /></div>
+            <div class="field"><label>מעקף לתחזוקה באמצעות מפסקים אלקטרומכניים</label><input type="text" id="ups-maintBypassBy" oninput="saveUps()" /></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>מתח מערכת האל-פסק בפעולה (V)</label><input type="text" id="ups-opVolt" oninput="saveUps()" /></div>
+            <div class="field"><label>תדר מערכת האל-פסק בפעולה (Hz)</label><input type="text" id="ups-opFreq" oninput="saveUps()" /></div>
+            <div class="field"><label>רציפות אפס ב-25A (ערך נמדד אם יש)</label><input type="text" id="ups-zeroContVal" oninput="saveUps()" /></div>
+          </div>
+        </div>
+
+        <div id="ups-checklists-container"></div>
+
+        <div class="card">
+          <h3 class="card-title">פס השוואת פוטנציאלים וחיבורים</h3>
+          <div id="ups-ebb-container"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">בדיקת התנגדות בידוד של הכבלים (MΩ)</h3>
+          <div class="grid-2">
+            <div class="item-box">
+              <div class="item-head">כבל כניסה (MΩ)</div>
+              <div class="grid-2">
+                <div class="field"><label>Rph1-e (MΩ)</label><input type="text" id="ups-ins-in-1" oninput="saveUps()" /></div>
+                <div class="field"><label>Rph2-e (MΩ)</label><input type="text" id="ups-ins-in-2" oninput="saveUps()" /></div>
+                <div class="field"><label>Rph3-e (MΩ)</label><input type="text" id="ups-ins-in-3" oninput="saveUps()" /></div>
+                <div class="field"><label>Rn-e (MΩ)</label><input type="text" id="ups-ins-in-n" oninput="saveUps()" /></div>
+              </div>
+            </div>
+            <div class="item-box">
+              <div class="item-head">כבל יציאה (MΩ)</div>
+              <div class="grid-2">
+                <div class="field"><label>Rph1-e (MΩ)</label><input type="text" id="ups-ins-out-1" oninput="saveUps()" /></div>
+                <div class="field"><label>Rph2-e (MΩ)</label><input type="text" id="ups-ins-out-2" oninput="saveUps()" /></div>
+                <div class="field"><label>Rph3-e (MΩ)</label><input type="text" id="ups-ins-out-3" oninput="saveUps()" /></div>
+                <div class="field"><label>Rn-e (MΩ)</label><input type="text" id="ups-ins-out-n" oninput="saveUps()" /></div>
+              </div>
+            </div>
+          </div>
+          <div class="check-row" style="border-bottom:none;">
+            <span class="check-label"><strong>התנגדות בידוד הכבלים תקינה</strong></span>
+            <div class="status-group" id="ups-ins-ok-group"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: PHOTOS, RESERVATIONS & PDF -->
+      <div id="ups-step-6" class="ups-step">
+        <div class="card">
+          <h3 class="card-title">
+            <span>תמונות מהשטח (תיעודים ותקלות)</span>
+            <button class="btn btn-accent btn-sm" onclick="addUpsPhoto()">+ הוסף תמונה</button>
+          </h3>
+          <div id="ups-photos-list"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">הסתייגויות והערות כלליות</h3>
+          <div class="field">
+            <label>רשימת הסתייגויות</label>
+            <textarea id="ups-reservations" placeholder="רשום כל הסתייגות בשורה נפרדת..." oninput="saveUps()"></textarea>
+          </div>
+          <div class="field">
+            <label>הערות כלליות</label>
+            <textarea id="ups-notes" placeholder="הערות נוספות לסיכום..." oninput="saveUps()"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">הפקת דוח PDF וגיבוי</h3>
+          <div class="grid-3">
+            <button class="btn btn-ok" onclick="printUpsReport()">הפק דוח PDF מלא</button>
+            <button class="btn btn-outline" onclick="exportDraft('ups')">שמור קובץ גיבוי</button>
+            <button class="btn btn-danger" onclick="resetUpsReport()">נקה לדוח חדש</button>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label>טעינת קובץ גיבוי שמור (JSON)</label>
+            <input type="file" accept=".json" onchange="importDraft(event, 'ups')" />
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM STEP NAVIGATION -->
+      <div class="bottom-nav no-print" id="ups-bottom-nav" style="display:none;">
+        <button class="btn btn-outline" id="ups-prev-btn" onclick="moveUpsStep(-1)">הקודם</button>
+        <button class="btn btn-ok" onclick="printUpsReport()">PDF</button>
+        <button class="btn btn-primary" id="ups-next-btn" onclick="moveUpsStep(1)">הבא</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- DEDICATED PRINT CONTAINER -->
+  <div id="print-area"></div>
+
+  <script>
+    /* ================= CONFIG & CONSTANTS ================= */
+    const STORAGE_KEYS = {
+      settings: 'lanza_app_settings_v1',
+      general: 'lanza_app_general_v1',
+      ups: 'lanza_app_ups_v1'
+    };
+
+    const DEFAULT_SETTINGS = {
+      bizName: 'לנזה - בדיקות, ייעוץ ותכנון מתקני חשמל',
+      roleTitle: 'בודק',
+      inspectorName: 'שלומי לנזה',
+      companyId: '304964349',
+      elecLicense: '992480',
+      inspectorLicense: '',
+      phone: '054-9762333',
+      email: '',
+      address: '',
+      logo: '',
+      stamp: ''
+    };
+
+    const UPS_BREAKERS_DEF = [
+      { id: 'main', num: '23-24', title: 'מפסק הזנה ראשי לאל-פסק' },
+      { id: 'opBypass', num: '25-26', title: 'מפסק מעקף תפעולי' },
+      { id: 'maintBypass', num: '27-28', title: 'מפסק מעקף לתחזוקה' },
+      { id: 'sysOut', num: '29-30', title: 'מפסק יציאה מלוח המערכת' },
+      { id: 'fedBoard', num: '31-32', title: 'מפסק ראשי בלוח מוזן' }
+    ];
+
+    const UPS_LOOPS_DEF = [
+      { id: 'input', title: 'ערכי עכבת לולאת התקלה וזרם הקצר הצפוי (במבוא לאל-פסק)' },
+      { id: 'output', title: 'ערכי עכבת לולאת התקלה וזרם הקצר הצפוי (במוצא אל-פסק)' },
+      { id: 'opBypass', title: 'ערכי עכבת לולאת התקלה וזרם הקצר הצפוי (במעקף התפעולי)' },
+      { id: 'maintBypass', title: 'ערכי עכבת לולאת התקלה וזרם הקצר הצפוי (במעקף לתחזוקה)' }
+    ];
+
+    const UPS_CHECKLIST_GROUPS = [
+      {
+        id: 'general',
+        title: 'כללי והארקת מערכת האל-פסק',
+        items: [
+          'לוחית זיהוי קריאה',
+          'מערכת בתקן ישראל 62040-1 / 62040-2 או 2146',
+          'תכנית חשמל עדכנית',
+          'תקינות הארקת שיטה למערכת בעלת אפס רציף',
+          'תקינות הארקת שיטה במערכת המופרדת באופן גלווני מהמבוא',
+          'תקינות הארקת הגנה',
+          'מרחקי מעברים סביב המערכת',
+          'גישה נוחה לתחזוקה, אור ואוורור',
+          'קיום הוראות הפעלה לתפעול מערכת האל-פסק'
+        ]
+      },
+      {
+        id: 'dc',
+        title: 'מצברים וזרם ישר (DC)',
+        items: [
+          'אמצעי להפסקת הזרם הישר במצברים חיצוניים',
+          'התאמת אמצעי להפסקת הזרם הישר במצברים חיצוניים להפסקת זרם ישר',
+          'תאורת חירום מוגנת התפוצצות בחדר מצברים (עופרת חומצה)',
+          'פתח לשחרור מימן בחדר מצברים (עופרת חומצה)',
+          'גישה נוחה לטיפול ולהחלפה בחדר מצברים',
+          'אוורור חדר מצברים והחלפת אוויר אחת לשעה לפחות (עופרת חומצה)',
+          'מערכת גילוי וכיבוי אש בחדר',
+          'ניקיון החדר והעדר חפצים או חומרים דליקים בחדר',
+          'שילוט יציאה בחדר מצברים'
+        ]
+      },
+      {
+        id: 'func',
+        title: 'בדיקות תפקוד ושנאי מבדל',
+        items: [
+          'בדיקת רציפות מוליך האפס במוצא ובמבוא בזרם של 25A',
+          'מתח מערכת האל-פסק בפעולה',
+          'תדר מערכת האל-פסק בפעולה',
+          'התאמת פאזות ביציאה',
+          'התאמת פאזות במעקף לתחזוקה',
+          'העדר מתח במבוא בעת הפסקת המתח',
+          'בדיקת תקינות ההזנה ממערכת האל-פסק בעת הפסקת מתח',
+          'בדיקת המשך ההזנה לאחר חזרת המתח',
+          'בדיקת פעולת המעקף התפעולי',
+          'בדיקת פעולת המעקף לתחזוקה',
+          'בדיקת פעולת לחצן הפסקת חירום',
+          'מיקום התקנת שנאי מבדל',
+          'תקינות התקנת שנאי מבדל',
+          'תקינות הארקת גוף שנאי מבדל',
+          'חיבור הארקת השיטה',
+          'תקינות הארקת שיטה לשנאי מבדל'
+        ]
+      },
+      {
+        id: 'signs',
+        title: 'שילוט וסימון',
+        items: [
+          'שילוט ייעוד המפסקים',
+          'שילוט בלוח ראשי על קיום מערכת אל-פסק',
+          'שילוט מערכת האל-פסק: "זהירות מערכת אל-פסק קיים מתח גם לאחר הפסקת הזינה"',
+          'שילוט מוליך האפס בכל התוואי: "זהירות מוליך האפס משמש גם להארקת השיטה של מערכת האל-פסק ואין להפסיק את רציפותו"',
+          'שילוט מפסק יציאה של המערכת',
+          'שילוט בתי התקע "מוזן ממערכת אל-פסק"',
+          'שילוט חדר מצברים כולל ציון פליטת גזים נפיצים'
+        ]
+      },
+      {
+        id: 'room',
+        title: 'חיוויים, תאורה וכיבוי אש',
+        items: [
+          'נוריות סימון וחיוויים',
+          'תאורת חירום',
+          '2 בתי תקע לפחות',
+          'כיבוי אש בלוח',
+          'כיבוי אש בחדר',
+          'התקן הדממה עבור כיבוי אש ושילוטו',
+          'שילוט יציאה'
+        ]
+      }
+    ];
+
+    const UPS_EBB_ITEMS = [
+      'בדיקת הפס ומיקומו',
+      'הארקת יסוד וחיבור לפס',
+      'בדיקת שטחי חתך מוליכי ההארקה',
+      'בדיקת שילוט מוליכי ההארקה',
+      'חיבור הארקת הגנה של מערכת האל-פסק',
+      'חיבור הארקת שיטה של האל-פסק'
+    ];
+
+    /* ================= STATE ================= */
+    let settings = loadJSON(STORAGE_KEYS.settings, { ...DEFAULT_SETTINGS });
+    let genData = loadJSON(STORAGE_KEYS.general, createDefaultGeneral());
+    let upsData = loadJSON(STORAGE_KEYS.ups, createDefaultUps());
+    let currentUpsStep = 1;
+    let toastTimer = null;
+
+    function todayISO() {
+      const d = new Date();
+      return d.toISOString().split('T')[0];
+    }
+
+    function formatDateIL(iso) {
+      if (!iso) return '—';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}.${p[1]}.${p[0].slice(-2)}` : iso;
+    }
+
+    function dateStampCode(iso) {
+      if (!iso) return '000000';
+      const p = iso.split('-');
+      return p.length === 3 ? `${p[2]}${p[1]}${p[0].slice(-2)}` : '000000';
+    }
+
+    function createDefaultGeneral() {
+      return {
+        title: '',
+        code: '',
+        date: todayISO(),
+        scope: '',
+        participants: [{ name: '', company: '' }],
+        items: [{ location: 'כללי', instruction: '', responsibility: 'קבלן', photo: '', fixDate: '', performer: '' }]
+      };
+    }
+
+    function createDefaultUps() {
+      const breakers = {};
+      UPS_BREAKERS_DEF.forEach(b => {
+        breakers[b.id] = { mfr: '', model: '', inA: '', L: '', S: '', I: '', G: '' };
+      });
+      const loops = {};
+      UPS_LOOPS_DEF.forEach(l => {
+        loops[l.id] = {
+          z1e: '', i1e: '', z2e: '', i2e: '', z3e: '', i3e: '', zpp: '', i2p: '',
+          z1n: '', i1n: '', z2n: '', i2n: '', z3n: '', i3n: '', i3p: '',
+          suitable: '', adjusted: '', replace: ''
+        };
+      });
+      return {
+        fields: { date: todayISO(), testType: 'בדיקת מערכת אל-פסק' },
+        breakers,
+        loops,
+        checks: {},
+        ebb: UPS_EBB_ITEMS.map(() => ({ status: '', note: '' })),
+        insOk: '',
+        photos: [],
+        reservations: '',
+        notes: ''
+      };
+    }
+
+    /* ================= STORAGE HELPERS ================= */
+    function loadJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        return Object.assign(fallback, JSON.parse(raw));
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function saveJSON(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+        showToast('נשמר במכשיר');
+      } catch (e) {
+        alert('זיכרון הדפדפן מלא (כנראה עקב תמונות רבות). מומלץ להפיק PDF או למחוק תמונות ישנות.');
+      }
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('save-toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 1400);
+    }
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/\n/g, '<br>');
+    }
+
+    function valOrDash(v) {
+      const s = String(v || '').trim();
+      return s ? esc(s) : '—';
+    }
+
+    /* ================= IMAGE COMPRESSION ================= */
+    function compressImageFile(file, maxDim, quality, callback) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+            else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ================= NAVIGATION ================= */
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + name).classList.add('active');
+      document.getElementById('btn-home').style.display = name === 'home' ? 'none' : 'inline-flex';
+      document.getElementById('ups-bottom-nav').style.display = name === 'ups' ? 'flex' : 'none';
+
+      const titles = {
+        home: 'לנזה - דוחות בדיקה ושטח',
+        settings: 'הגדרות עסק, לוגו וחותמת',
+        general: 'דוח סיור / פיקוח כללי',
+        ups: 'דוח בדיקת מערכת אל-פסק (UPS)'
+      };
+      document.getElementById('topbar-title').textContent = titles[name] || titles.home;
+      window.scrollTo(0, 0);
+    }
+
+    /* ================= SETTINGS ================= */
+    function renderSettings() {
+      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address']
+        .forEach(k => {
+          const el = document.getElementById('set-' + k);
+          if (el) el.value = settings[k] || '';
+        });
+
+      const homeBiz = document.getElementById('home-biz-name');
+      homeBiz.textContent = settings.bizName || DEFAULT_SETTINGS.bizName;
+
+      const homeLogo = document.getElementById('home-logo');
+      const prevLogo = document.getElementById('preview-logo');
+      if (settings.logo) {
+        homeLogo.src = settings.logo; homeLogo.style.display = 'inline-block';
+        prevLogo.src = settings.logo; prevLogo.style.display = 'block';
+      } else {
+        homeLogo.style.display = 'none';
+        prevLogo.style.display = 'none';
+      }
+
+      const prevStamp = document.getElementById('preview-stamp');
+      if (settings.stamp) {
+        prevStamp.src = settings.stamp; prevStamp.style.display = 'block';
+      } else {
+        prevStamp.style.display = 'none';
+      }
+    }
+
+    function saveSettings() {
+      ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address']
+        .forEach(k => {
+          settings[k] = document.getElementById('set-' + k).value;
+        });
+      saveJSON(STORAGE_KEYS.settings, settings);
+      renderSettings();
+    }
+
+    function handleBrandUpload(event, key) {
+      const file = event.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 900, 0.82, dataUrl => {
+        settings[key] = dataUrl;
+        saveJSON(STORAGE_KEYS.settings, settings);
+        renderSettings();
+      });
+    }
+
+    function clearBrandImage(key) {
+      settings[key] = '';
+      saveJSON(STORAGE_KEYS.settings, settings);
+      renderSettings();
+    }
+
+    /* ================= GENERAL REPORT ================= */
+    function renderGeneral() {
+      document.getElementById('gen-title').value = genData.title || '';
+      document.getElementById('gen-code').value = genData.code || '';
+      document.getElementById('gen-date').value = genData.date || todayISO();
+      document.getElementById('gen-scope').value = genData.scope || '';
+
+      const pList = document.getElementById('gen-participants-list');
+      pList.innerHTML = '';
+      genData.participants.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'grid-3';
+        div.style.marginBottom = '8px';
+        div.innerHTML = `
+          <input type="text" placeholder="שם משתתף" value="${esc(p.name)}" oninput="genData.participants[${idx}].name=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
+          <input type="text" placeholder="חברה / ארגון" value="${esc(p.company)}" oninput="genData.participants[${idx}].company=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
+          <button class="btn btn-outline btn-sm" onclick="removeGenParticipant(${idx})">הסר</button>
+        `;
+        pList.appendChild(div);
+      });
+
+      const iList = document.getElementById('gen-items-list');
+      iList.innerHTML = '';
+      genData.items.forEach((it, idx) => {
+        const box = document.createElement('div');
+        box.className = 'item-box';
+        const trackNum = `${genData.code || '000'}-${dateStampCode(genData.date)}-${String(idx + 1).padStart(4, '0')}`;
+        box.innerHTML = `
+          <div class="item-head">
+            <span>סעיף #${idx + 1} (${esc(trackNum)})</span>
+            <button class="btn btn-danger btn-sm" onclick="removeGenItem(${idx})">מחק</button>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>מיקום / נושא</label>
+              <input type="text" value="${esc(it.location)}" placeholder="למשל: כללי / לוח ראשי / לוח גנרטור" oninput="genData.items[${idx}].location=this.value; saveJSON(STORAGE_KEYS.general, genData);" />
+            </div>
+            <div class="field">
+              <label>אחריות</label>
+              <select onchange="genData.items[${idx}].responsibility=this.value; saveJSON(STORAGE_KEYS.general, genData);">
+                <option value="קבלן" ${it.responsibility==='קבלן'?'selected':''}>קבלן</option>
+                <option value="מזמין" ${it.responsibility==='מזמין'?'selected':''}>מזמין</option>
+                <option value="יועץ" ${it.responsibility==='יועץ'?'selected':''}>יועץ</option>
+                <option value="ספק" ${it.responsibility==='ספק'?'selected':''}>ספק</option>
+                <option value="אחר" ${it.responsibility==='אחר'?'selected':''}>אחר</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>תיאור ממצא / הנחייה</label>
+            <textarea oninput="genData.items[${idx}].instruction=this.value; saveJSON(STORAGE_KEYS.general, genData);">${esc(it.instruction)}</textarea>
+          </div>
+          <div class="field">
+            <label>תמונה לסעיף (צלם או בחר מהגלריה)</label>
+            <input type="file" accept="image/*" onchange="uploadGenPhoto(event, ${idx})" />
+            ${it.photo ? `<img src="${it.photo}" class="photo-preview" alt="תמונת סעיף" /><button class="btn btn-outline btn-sm" style="margin-top:6px;width:fit-content;" onclick="genData.items[${idx}].photo=''; saveJSON(STORAGE_KEYS.general, genData); renderGeneral();">הסר תמונה</button>` : ''}
+          </div>
+        `;
+        iList.appendChild(box);
+      });
+    }
+
+    function saveGen() {
+      genData.title = document.getElementById('gen-title').value;
+      genData.code = document.getElementById('gen-code').value;
+      genData.date = document.getElementById('gen-date').value;
+      genData.scope = document.getElementById('gen-scope').value;
+      saveJSON(STORAGE_KEYS.general, genData);
+    }
+
+    function addGenParticipant() {
+      genData.participants.push({ name: '', company: '' });
+      saveJSON(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    function removeGenParticipant(idx) {
+      genData.participants.splice(idx, 1);
+      saveJSON(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    function addGenItem() {
+      genData.items.push({ location: 'כללי', instruction: '', responsibility: 'קבלן', photo: '', fixDate: '', performer: '' });
+      saveJSON(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    function removeGenItem(idx) {
+      if (!confirm('למחוק את סעיף #' + (idx + 1) + '?')) return;
+      genData.items.splice(idx, 1);
+      saveJSON(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    function uploadGenPhoto(event, idx) {
+      const file = event.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 800, 0.72, dataUrl => {
+        genData.items[idx].photo = dataUrl;
+        saveJSON(STORAGE_KEYS.general, genData);
+        renderGeneral();
+      });
+    }
+
+    function resetGeneralReport() {
+      if (!confirm('למחוק את כל הנתונים בדוח הכללי ולהתחיל דוח חדש?')) return;
+      genData = createDefaultGeneral();
+      saveJSON(STORAGE_KEYS.general, genData);
+      renderGeneral();
+    }
+
+    /* ================= UPS REPORT ================= */
+    function setUpsStep(step) {
+      currentUpsStep = step;
+      document.querySelectorAll('.ups-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('ups-step-' + step).classList.add('active');
+
+      const tabs = document.querySelectorAll('#ups-steps-bar .step-tab');
+      tabs.forEach((t, i) => t.classList.toggle('active', i + 1 === step));
+
+      document.getElementById('ups-prev-btn').disabled = step === 1;
+      document.getElementById('ups-next-btn').disabled = step === 6;
+      window.scrollTo(0, 0);
+    }
+
+    function moveUpsStep(delta) {
+      const next = currentUpsStep + delta;
+      if (next >= 1 && next <= 6) setUpsStep(next);
+    }
+
+    function buildUpsDynamicUI() {
+      // 1. Breakers
+      const bCont = document.getElementById('ups-breakers-container');
+      bCont.innerHTML = '';
+      UPS_BREAKERS_DEF.forEach(b => {
+        const data = upsData.breakers[b.id] || {};
+        const box = document.createElement('div');
+        box.className = 'item-box';
+        box.innerHTML = `
+          <div class="item-head"><span>${b.num}. ${b.title}</span></div>
+          <div class="grid-3">
+            <div class="field"><label>יצרן</label><input type="text" value="${esc(data.mfr)}" oninput="updateBreaker('${b.id}','mfr',this.value)" /></div>
+            <div class="field"><label>דגם</label><input type="text" value="${esc(data.model)}" oninput="updateBreaker('${b.id}','model',this.value)" /></div>
+            <div class="field"><label>זרם נקוב (A)</label><input type="text" value="${esc(data.inA)}" oninput="updateBreaker('${b.id}','inA',this.value)" /></div>
+          </div>
+          <div class="grid-4">
+            <div class="field"><label>L (A)</label><input type="text" value="${esc(data.L)}" oninput="updateBreaker('${b.id}','L',this.value)" /></div>
+            <div class="field"><label>S (A)</label><input type="text" value="${esc(data.S)}" oninput="updateBreaker('${b.id}','S',this.value)" /></div>
+            <div class="field"><label>I (A)</label><input type="text" value="${esc(data.I)}" oninput="updateBreaker('${b.id}','I',this.value)" /></div>
+            <div class="field"><label>G (A)</label><input type="text" value="${esc(data.G)}" oninput="updateBreaker('${b.id}','G',this.value)" /></div>
+          </div>
+        `;
+        bCont.appendChild(box);
+      });
+
+      // 2. Loops
+      const lCont = document.getElementById('ups-loops-container');
+      lCont.innerHTML = '';
+      UPS_LOOPS_DEF.forEach(l => {
+        const d = upsData.loops[l.id] || {};
+        const card = document.createElement('div');
+        card.className = 'loop-subcard';
+        card.innerHTML = `
+          <h4>${l.title}</h4>
+          <div class="grid-4">
+            <div class="field"><label>Zph1-e (mΩ)</label><input type="text" value="${esc(d.z1e)}" oninput="updateLoop('${l.id}','z1e',this.value)" /></div>
+            <div class="field"><label>Isc L1-E (kA)</label><input type="text" value="${esc(d.i1e)}" oninput="updateLoop('${l.id}','i1e',this.value)" /></div>
+            <div class="field"><label>Zph1-n (mΩ)</label><input type="text" value="${esc(d.z1n)}" oninput="updateLoop('${l.id}','z1n',this.value)" /></div>
+            <div class="field"><label>Isc L1-N (kA)</label><input type="text" value="${esc(d.i1n)}" oninput="updateLoop('${l.id}','i1n',this.value)" /></div>
+
+            <div class="field"><label>Zph2-e (mΩ)</label><input type="text" value="${esc(d.z2e)}" oninput="updateLoop('${l.id}','z2e',this.value)" /></div>
+            <div class="field"><label>Isc L2-E (kA)</label><input type="text" value="${esc(d.i2e)}" oninput="updateLoop('${l.id}','i2e',this.value)" /></div>
+            <div class="field"><label>Zph2-n (mΩ)</label><input type="text" value="${esc(d.z2n)}" oninput="updateLoop('${l.id}','z2n',this.value)" /></div>
+            <div class="field"><label>Isc L2-N (kA)</label><input type="text" value="${esc(d.i2n)}" oninput="updateLoop('${l.id}','i2n',this.value)" /></div>
+
+            <div class="field"><label>Zph3-e (mΩ)</label><input type="text" value="${esc(d.z3e)}" oninput="updateLoop('${l.id}','z3e',this.value)" /></div>
+            <div class="field"><label>Isc L3-E (kA)</label><input type="text" value="${esc(d.i3e)}" oninput="updateLoop('${l.id}','i3e',this.value)" /></div>
+            <div class="field"><label>Zph3-n (mΩ)</label><input type="text" value="${esc(d.z3n)}" oninput="updateLoop('${l.id}','z3n',this.value)" /></div>
+            <div class="field"><label>Isc L3-N (kA)</label><input type="text" value="${esc(d.i3n)}" oninput="updateLoop('${l.id}','i3n',this.value)" /></div>
+
+            <div class="field"><label>Zph-ph (mΩ)</label><input type="text" value="${esc(d.zpp)}" oninput="updateLoop('${l.id}','zpp',this.value)" /></div>
+            <div class="field"><label>Isc 2ph (kA)</label><input type="text" value="${esc(d.i2p)}" oninput="updateLoop('${l.id}','i2p',this.value)" /></div>
+            <div class="field"><label>Isc 3ph (kA)</label><input type="text" value="${esc(d.i3p)}" oninput="updateLoop('${l.id}','i3p',this.value)" /></div>
+          </div>
+          <div class="grid-3" style="margin-top:8px;">
+            <div class="field">
+              <label>כוונון ההגנות מתאים לזרם הקצר?</label>
+              <select onchange="updateLoop('${l.id}','suitable',this.value)">
+                <option value="">-- בחר --</option>
+                <option value="P" ${d.suitable==='P'?'selected':''}>P - תקין</option>
+                <option value="F" ${d.suitable==='F'?'selected':''}>F - לא תקין</option>
+                <option value="NC" ${d.suitable==='NC'?'selected':''}>NC - לא נבדק</option>
+                <option value="NA" ${d.suitable==='NA'?'selected':''}>NA - לא ישים</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>בוצע כוונון</label>
+              <select onchange="updateLoop('${l.id}','adjusted',this.value)">
+                <option value="">-- בחר --</option>
+                <option value="כן" ${d.adjusted==='כן'?'selected':''}>כן</option>
+                <option value="לא" ${d.adjusted==='לא'?'selected':''}>לא</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>נדרשת החלפת מפסק</label>
+              <select onchange="updateLoop('${l.id}','replace',this.value)">
+                <option value="">-- בחר --</option>
+                <option value="כן" ${d.replace==='כן'?'selected':''}>כן</option>
+                <option value="לא" ${d.replace==='לא'?'selected':''}>לא</option>
+              </select>
+            </div>
+          </div>
+        `;
+        lCont.appendChild(card);
+      });
+
+      // 3. Checklists
+      renderUpsChecklists();
+
+      // 4. EBB
+      renderUpsEbb();
+
+      // 5. Insulation OK buttons
+      renderStatusGroup(document.getElementById('ups-ins-ok-group'), upsData.insOk, val => {
+        upsData.insOk = val;
+        saveJSON(STORAGE_KEYS.ups, upsData);
+        buildUpsDynamicUI();
+      });
+
+      // 6. Photos
+      renderUpsPhotos();
+    }
+
+    function renderStatusGroup(container, currentVal, onSelect) {
+      container.innerHTML = '';
+      ['P', 'F', 'NC', 'NA'].forEach(code => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'st-btn' + (currentVal === code ? ' sel-' + code : '');
+        btn.textContent = code;
+        btn.onclick = () => onSelect(currentVal === code ? '' : code);
+        container.appendChild(btn);
+      });
+    }
+
+    function renderUpsChecklists() {
+      const cCont = document.getElementById('ups-checklists-container');
+      cCont.innerHTML = '';
+      UPS_CHECKLIST_GROUPS.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const header = document.createElement('h3');
+        header.className = 'card-title';
+        header.innerHTML = `<span>${g.title}</span>`;
+        const allPBtn = document.createElement('button');
+        allPBtn.type = 'button';
+        allPBtn.className = 'btn btn-outline btn-sm';
+        allPBtn.textContent = 'סמן הכל P';
+        allPBtn.onclick = () => {
+          g.items.forEach((_, idx) => { upsData.checks[`${g.id}_${idx}`] = 'P'; });
+          saveJSON(STORAGE_KEYS.ups, upsData);
+          renderUpsChecklists();
+        };
+        header.appendChild(allPBtn);
+        card.appendChild(header);
+
+        g.items.forEach((label, idx) => {
+          const key = `${g.id}_${idx}`;
+          const row = document.createElement('div');
+          row.className = 'check-row';
+          row.innerHTML = `<span class="check-label">${label}</span>`;
+          const grp = document.createElement('div');
+          grp.className = 'status-group';
+          renderStatusGroup(grp, upsData.checks[key] || '', val => {
+            upsData.checks[key] = val;
+            saveJSON(STORAGE_KEYS.ups, upsData);
+            renderUpsChecklists();
+          });
+          row.appendChild(grp);
+          card.appendChild(row);
+        });
+        cCont.appendChild(card);
+      });
+    }
+
+    function renderUpsEbb() {
+      const cont = document.getElementById('ups-ebb-container');
+      cont.innerHTML = '';
+      UPS_EBB_ITEMS.forEach((label, idx) => {
+        const item = upsData.ebb[idx] || { status: '', note: '' };
+        const row = document.createElement('div');
+        row.className = 'check-row';
+        row.innerHTML = `<span class="check-label">${idx + 1}. ${label}</span>`;
+        const rightWrap = document.createElement('div');
+        rightWrap.style.display = 'flex';
+        rightWrap.style.gap = '6px';
+        rightWrap.style.flexWrap = 'wrap';
+        rightWrap.style.alignItems = 'center';
+
+        const grp = document.createElement('div');
+        grp.className = 'status-group';
+        renderStatusGroup(grp, item.status, val => {
+          upsData.ebb[idx].status = val;
+          saveJSON(STORAGE_KEYS.ups, upsData);
+          renderUpsEbb();
+        });
+
+        const noteIn = document.createElement('input');
+        noteIn.type = 'text';
+        noteIn.placeholder = 'הערה';
+        noteIn.value = item.note || '';
+        noteIn.style.width = '140px';
+        noteIn.style.padding = '6px 8px';
+        noteIn.oninput = () => {
+          upsData.ebb[idx].note = noteIn.value;
+          saveJSON(STORAGE_KEYS.ups, upsData);
+        };
+
+        rightWrap.appendChild(grp);
+        rightWrap.appendChild(noteIn);
+        row.appendChild(rightWrap);
+        cont.appendChild(row);
+      });
+    }
+
+    function renderUpsPhotos() {
+      const list = document.getElementById('ups-photos-list');
+      list.innerHTML = '';
+      if (!upsData.photos.length) {
+        list.innerHTML = '<p class="small-hint">עדיין לא צורפו תמונות. לחץ על "+ הוסף תמונה" לצילום תיעוד או תקלה.</p>';
+        return;
+      }
+      upsData.photos.forEach((ph, idx) => {
+        const box = document.createElement('div');
+        box.className = 'item-box';
+        box.innerHTML = `
+          <div class="item-head">
+            <span>תמונה #${idx + 1}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeUpsPhoto(${idx})">מחק</button>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>סוג תמונה</label>
+              <select onchange="upsData.photos[${idx}].type=this.value; saveJSON(STORAGE_KEYS.ups, upsData);">
+                <option value="תיעוד" ${ph.type==='תיעוד'?'selected':''}>תיעוד תקין</option>
+                <option value="תקלה / ליקוי" ${ph.type==='תקלה / ליקוי'?'selected':''}>תקלה / ליקוי</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>תיאור קצר</label>
+              <input type="text" value="${esc(ph.caption)}" placeholder="למשל: לוחית זיהוי UPS / כוונון מפסק ראשי" oninput="upsData.photos[${idx}].caption=this.value; saveJSON(STORAGE_KEYS.ups, upsData);" />
+            </div>
+          </div>
+          <div class="field">
+            <label>קובץ תמונה</label>
+            <input type="file" accept="image/*" onchange="uploadUpsPhoto(event, ${idx})" />
+            ${ph.dataUrl ? `<img src="${ph.dataUrl}" class="photo-preview" alt="תמונה" />` : ''}
+          </div>
+        `;
+        list.appendChild(box);
+      });
+    }
+
+    function addUpsPhoto() {
+      upsData.photos.push({ type: 'תיעוד', caption: '', dataUrl: '' });
+      saveJSON(STORAGE_KEYS.ups, upsData);
+      renderUpsPhotos();
+    }
+
+    function removeUpsPhoto(idx) {
+      upsData.photos.splice(idx, 1);
+      saveJSON(STORAGE_KEYS.ups, upsData);
+      renderUpsPhotos();
+    }
+
+    function uploadUpsPhoto(event, idx) {
+      const file = event.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 800, 0.72, dataUrl => {
+        upsData.photos[idx].dataUrl = dataUrl;
+        saveJSON(STORAGE_KEYS.ups, upsData);
+        renderUpsPhotos();
+      });
+    }
+
+    function updateBreaker(id, key, val) {
+      upsData.breakers[id][key] = val;
+      saveJSON(STORAGE_KEYS.ups, upsData);
+    }
+
+    function updateLoop(id, key, val) {
+      upsData.loops[id][key] = val;
+      saveJSON(STORAGE_KEYS.ups, upsData);
+    }
+
+    function loadUpsFieldsToDOM() {
+      document.querySelectorAll('#screen-ups [id^="ups-"]').forEach(el => {
+        const id = el.id;
+        if (id === 'ups-reservations') { el.value = upsData.reservations || ''; return; }
+        if (id === 'ups-notes') { el.value = upsData.notes || ''; return; }
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+          const key = id.replace('ups-', '');
+          if (upsData.fields && upsData.fields[key] !== undefined) {
+            el.value = upsData.fields[key];
+          } else {
+            el.value = '';
+          }
+        }
+      });
+    }
+
+    function saveUps() {
+      if (!upsData.fields) upsData.fields = {};
+      document.querySelectorAll('#screen-ups [id^="ups-"]').forEach(el => {
+        const id = el.id;
+        if (id === 'ups-reservations') { upsData.reservations = el.value; return; }
+        if (id === 'ups-notes') { upsData.notes = el.value; return; }
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+          upsData.fields[id.replace('ups-', '')] = el.value;
+        }
+      });
+      saveJSON(STORAGE_KEYS.ups, upsData);
+    }
+
+    function resetUpsReport() {
+      if (!confirm('למחוק את כל הנתונים בדוח האל-פסק ולהתחיל דוח חדש?')) return;
+      upsData = createDefaultUps();
+      saveJSON(STORAGE_KEYS.ups, upsData);
+      loadUpsFieldsToDOM();
+      buildUpsDynamicUI();
+      setUpsStep(1);
+    }
+
+    /* ================= BACKUP EXPORT / IMPORT ================= */
+    function exportDraft(type) {
+      const data = type === 'general' ? genData : upsData;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `lanza_${type}_${todayISO()}.json`;
+      a.click();
+    }
+
+    function importDraft(event, type) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (type === 'general') {
+            genData = Object.assign(createDefaultGeneral(), parsed);
+            saveJSON(STORAGE_KEYS.general, genData);
+            renderGeneral();
+          } else {
+            upsData = Object.assign(createDefaultUps(), parsed);
+            saveJSON(STORAGE_KEYS.ups, upsData);
+            loadUpsFieldsToDOM();
+            buildUpsDynamicUI();
+          }
+          alert('הגיבוי נטען בהצלחה.');
+        } catch (e) {
+          alert('קובץ הגיבוי אינו תקין.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ================= PRINT / PDF GENERATORS ================= */
+    function brandHeaderHTML() {
+      const logoPart = settings.logo
+        ? `<img src="${settings.logo}" alt="לוגו" />`
+        : `<div style="font-size:16pt;font-weight:700;color:#1e293b;">${esc(settings.bizName)}</div>`;
+      return `<div class="p-header-logo">${logoPart}</div>`;
+    }
+
+    function brandFooterHTML() {
+      const parts = [settings.bizName];
+      if (settings.companyId) parts.push('ע.מ: ' + settings.companyId);
+      if (settings.phone) parts.push('טלפון: ' + settings.phone);
+      if (settings.email) parts.push('דוא"ל: ' + settings.email);
+      if (settings.address) parts.push('כתובת: ' + settings.address);
+      return `<div class="p-footer-bar">${esc(parts.join('  |  '))}</div>`;
+    }
+
+    function stampHTML() {
+      if (settings.stamp) {
+        return `<div class="p-stamp-box"><img src="${settings.stamp}" alt="חותמת וחתימה" /></div>`;
+      }
+      return `
+        <div class="p-stamp-box" style="border:1px solid #475569;padding:8px 14px;display:inline-block;text-align:center;">
+          <strong>${esc(settings.bizName)}</strong><br/>
+          ${settings.companyId ? 'ע.מ ' + esc(settings.companyId) + '<br/>' : ''}
+          ${settings.elecLicense ? 'חשמלאי הנדסאי ' + esc(settings.elecLicense) + '<br/>' : ''}
+          ${settings.phone ? esc(settings.phone) : ''}
+        </div>`;
+    }
+
+    function printGeneralReport() {
+      const partRows = (genData.participants || [])
+        .filter(p => (p.name || p.company).trim())
+        .map(p => `<tr><td>${valOrDash(p.name)}</td><td>${valOrDash(p.company)}</td></tr>`).join('');
+
+      const itemRows = (genData.items || []).map((it, idx) => {
+        const trackNum = `${genData.code || '000'}-${dateStampCode(genData.date)}-${String(idx + 1).padStart(4, '0')}`;
+        return `
+          <tr class="p-avoid-break">
+            <td class="p-center">${idx + 1}</td>
+            <td><strong>${valOrDash(it.location)}</strong><br/><span style="font-size:8pt;color:#475569;">${esc(trackNum)}</span></td>
+            <td>${valOrDash(it.instruction)}</td>
+            <td class="p-center">${valOrDash(it.responsibility)}</td>
+            <td class="p-img-cell">${it.photo ? `<img src="${it.photo}" alt="תמונה" />` : '—'}</td>
+            <td style="width:65px;"></td>
+            <td style="width:65px;"></td>
+          </tr>`;
+      }).join('');
+
+      document.getElementById('print-area').innerHTML = `
+        ${brandHeaderHTML()}
+        <h2 style="text-align:center;margin:6px 0 10px 0;">${valOrDash(genData.title || 'דוח סיור / פיקוח כללי')}</h2>
+        <table class="p-table">
+          <tr>
+            <th style="width:22%;">תאריך סיור</th>
+            <td style="width:28%;">${formatDateIL(genData.date)}</td>
+            <th style="width:22%;">קוד / מס' פרויקט</th>
+            <td style="width:28%;">${valOrDash(genData.code)}</td>
+          </tr>
+          <tr>
+            <th>מהלך הסיור ותכולות שנבדקו</th>
+            <td colspan="3">${valOrDash(genData.scope)}</td>
+          </tr>
+        </table>
+
+        ${partRows ? `
+          <div class="p-section-title">משתתפים</div>
+          <table class="p-table">
+            <thead><tr><th>שם</th><th>חברה / ארגון</th></tr></thead>
+            <tbody>${partRows}</tbody>
+          </table>` : ''}
+
+        <div class="p-section-title">ממצאים והנחיות</div>
+        <table class="p-table">
+          <thead>
+            <tr>
+              <th style="width:30px;" class="p-center">#</th>
+              <th style="width:110px;">מיקום / נושא ומספור</th>
+              <th>הנחייה / ממצא</th>
+              <th style="width:55px;" class="p-center">אחריות</th>
+              <th style="width:145px;" class="p-center">תמונות</th>
+              <th class="p-center">תאריך טיפול</th>
+              <th class="p-center">מבצע</th>
+            </tr>
+          </thead>
+          <tbody>${itemRows || '<tr><td colspan="7" class="p-center">לא הוזנו ממצאים</td></tr>'}</tbody>
+        </table>
+
+        ${stampHTML()}
+        ${brandFooterHTML()}
+      `;
+
+      setTimeout(() => window.print(), 150);
+    }
+
+    function fmtStatus(st) {
+      if (!st) return '—';
+      return `<span class="st-${st}">${st}</span>`;
+    }
+
+    function printUpsReport() {
+      const f = upsData.fields || {};
+
+      // Page 1: Cover
+      const coverHTML = `
+        <div class="p-cover p-page-break">
+          <div>
+            ${brandHeaderHTML()}
+            <div style="text-align:center;font-weight:700;margin-bottom:10px;">תאריך: ${formatDateIL(f.date)}</div>
+            <table class="p-table">
+              <tr>
+                <th style="width:20%;">מזמין הבדיקה:</th><td style="width:30%;">${valOrDash(f.client)}</td>
+                <th style="width:20%;">שם המתקן:</th><td style="width:30%;">${valOrDash(f.facility)}</td>
+              </tr>
+              <tr>
+                <th>טלפון:</th><td>${valOrDash(f.clientPhone)}</td>
+                <th>סוג הבדיקה:</th><td>${valOrDash(f.testType)}</td>
+              </tr>
+              <tr>
+                <th>חברה:</th><td>${valOrDash(f.company)}</td>
+                <th>הזנה במתח:</th><td>${valOrDash(f.supplyVoltage)}</td>
+              </tr>
+              <tr>
+                <th>הזמנה מתאריך:</th><td>${formatDateIL(f.orderDate)}</td>
+                <th>גודל חיבור:</th><td>${valOrDash(f.connSize)}</td>
+              </tr>
+              <tr>
+                <th>מספר הזמנה:</th><td colspan="3">${valOrDash(f.orderNum)}</td>
+              </tr>
+              <tr>
+                <th>כתובות מייל למשלוח הדו"ח:</th><td colspan="3">${valOrDash(f.reportEmails)}</td>
+              </tr>
+            </table>
+
+            <div class="p-title-main">
+              הבדיקה בוצעה ע"י<br/>
+              ${esc(settings.roleTitle || 'בודק')}
+            </div>
+
+            <table class="p-table" style="width:65%;margin:16px auto;">
+              <tr><th>פרטי מבצע הבדיקה:</th><td>${valOrDash(settings.inspectorName)}</td></tr>
+              <tr><th>רישיון חשמלאי הנדסאי מס':</th><td>${valOrDash(settings.elecLicense)}</td></tr>
+              ${settings.inspectorLicense ? `<tr><th>רישיון בודק מס':</th><td>${esc(settings.inspectorLicense)}</td></tr>` : ''}
+            </table>
+          </div>
+          <div>
+            ${stampHTML()}
+            ${brandFooterHTML()}
+          </div>
+        </div>
+      `;
+
+      // Page 2: Technical Specs & Breakers
+      const techRows = [
+        ['1', 'הספק מערכת האל-פסק (kVA)', f.t1],
+        ['2', 'יצרן', f.t2],
+        ['3', 'דגם', f.t3],
+        ['4', 'מספר סידורי', f.t4],
+        ['5', 'מתח הזנה / מתח מוצא', `הזנה: ${f.t5in || '—'}  |  מוצא: ${f.t5out || '—'}`],
+        ['6', 'סוג המערכת', f.t6],
+        ['7', 'מקור ההזנה הראשי', `מלוח: ${f.t7board || '—'}  |  ממעגל: ${f.t7circ || '—'}`],
+        ['8', 'קיים מעקף תפעולי', f.t8],
+        ['9', 'קיים מעקף לתחזוקה', f.t9],
+        ['10', 'מקור הזנת המעקף התפעולי', `מלוח: ${f.t10board || '—'}  |  ממעגל: ${f.t10circ || '—'}`],
+        ['11', 'מקור הזנת המעקף לתחזוקה', `מלוח: ${f.t11board || '—'}  |  ממעגל: ${f.t11circ || '—'}`],
+        ['12', 'שטח חתך מוליכי כבל ההזנה (mm²)', `ראשי: ${f.t12main || '—'}  |  תפעולי: ${f.t12op || '—'}`],
+        ['13', 'שטח חתך מוליכי כבל ההזנה לתחזוקה (mm²)', f.t13],
+        ['14', 'שטח חתך מוליכי הארקה (mm²)', f.t14],
+        ['15', 'אופן הארקת המערכת', f.t15],
+        ['16', 'שטח חתך כבל מוליכי היציאה (mm²)', f.t16],
+        ['17', 'מקום התקנת המצברים', f.t17],
+        ['18', 'שטח חתך מוליכי המצברים (mm²)', f.t18],
+        ['19', 'שיטת הגנה כנגד חשמול במתקן', f.t19],
+        ['20', 'שיטת הגנה כנגד חשמול במערכת אל-פסק', f.t20],
+        ['21', 'קיום שנאי מבדל והספק', `קיים: ${f.t21exist || '—'}  |  הספק: ${f.t21kva || '—'} kVA`],
+        ['22', 'התקנת שנאי מבדל וקבוצת חיבורים', `התקנה: ${f.t22inst || '—'}  |  קבוצת חיבורים: ${f.t22vec || '—'}`]
+      ].map(r => `<tr><td class="p-center" style="width:32px;">${r[0]}</td><th style="width:38%;">${r[1]}</th><td>${valOrDash(r[2])}</td></tr>`).join('');
+
+      const breakerRows = UPS_BREAKERS_DEF.map(b => {
+        const d = upsData.breakers[b.id] || {};
+        return `
+          <tr>
+            <td><strong>${b.num}. ${b.title}</strong></td>
+            <td>${valOrDash(d.mfr)}</td>
+            <td>${valOrDash(d.model)}</td>
+            <td class="p-center">${valOrDash(d.inA)}</td>
+            <td class="p-center">${valOrDash(d.L)}</td>
+            <td class="p-center">${valOrDash(d.S)}</td>
+            <td class="p-center">${valOrDash(d.I)}</td>
+            <td class="p-center">${valOrDash(d.G)}</td>
+          </tr>`;
+      }).join('');
+
+      // Loops HTML
+      const loopsHTML = UPS_LOOPS_DEF.map(l => {
+        const d = upsData.loops[l.id] || {};
+        return `
+          <div class="p-avoid-break" style="margin-bottom:10px;">
+            <div style="font-weight:700;background:#e2e8f0;padding:4px 8px;border:1px solid #475569;border-bottom:none;">${l.title}</div>
+            <table class="p-table" style="margin-bottom:0;">
+              <thead>
+                <tr>
+                  <th>מדידה (L-E)</th><th>ערך (mΩ)</th><th>Isc (kA)</th>
+                  <th>מדידה (L-N / 3ph)</th><th>ערך (mΩ)</th><th>Isc (kA)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Zph1-e</td><td class="p-center">${valOrDash(d.z1e)}</td><td class="p-center">${valOrDash(d.i1e)}</td>
+                  <td>Zph1-n</td><td class="p-center">${valOrDash(d.z1n)}</td><td class="p-center">${valOrDash(d.i1n)}</td>
+                </tr>
+                <tr>
+                  <td>Zph2-e</td><td class="p-center">${valOrDash(d.z2e)}</td><td class="p-center">${valOrDash(d.i2e)}</td>
+                  <td>Zph2-n</td><td class="p-center">${valOrDash(d.z2n)}</td><td class="p-center">${valOrDash(d.i2n)}</td>
+                </tr>
+                <tr>
+                  <td>Zph3-e</td><td class="p-center">${valOrDash(d.z3e)}</td><td class="p-center">${valOrDash(d.i3e)}</td>
+                  <td>Zph3-n</td><td class="p-center">${valOrDash(d.z3n)}</td><td class="p-center">${valOrDash(d.i3n)}</td>
+                </tr>
+                <tr>
+                  <td>Zph-ph</td><td class="p-center">${valOrDash(d.zpp)}</td><td class="p-center">Isc 2ph: ${valOrDash(d.i2p)}</td>
+                  <td>Isc 3ph</td><td class="p-center">—</td><td class="p-center">${valOrDash(d.i3p)}</td>
+                </tr>
+                <tr>
+                  <td colspan="2">כוונון הגנות מתאים: ${fmtStatus(d.suitable)}</td>
+                  <td colspan="2">בוצע כוונון: <strong>${valOrDash(d.adjusted)}</strong></td>
+                  <td colspan="2">נדרשת החלפת מפסק: <strong>${valOrDash(d.replace)}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>`;
+      }).join('');
+
+      // Checklists HTML
+      const checkHTML = UPS_CHECKLIST_GROUPS.map(g => {
+        const rows = g.items.map((label, idx) => `
+          <tr>
+            <td>${label}</td>
+            <td class="p-center" style="width:65px;">${fmtStatus(upsData.checks[`${g.id}_${idx}`])}</td>
+          </tr>`).join('');
+        return `
+          <div class="p-avoid-break">
+            <div class="p-section-title">${g.title}</div>
+            <table class="p-table"><tbody>${rows}</tbody></table>
+          </div>`;
+      }).join('');
+
+      // EBB HTML
+      const ebbRows = UPS_EBB_ITEMS.map((label, idx) => {
+        const it = upsData.ebb[idx] || {};
+        return `
+          <tr>
+            <td class="p-center" style="width:30px;">${idx + 1}</td>
+            <td>${label}</td>
+            <td class="p-center" style="width:60px;">${fmtStatus(it.status)}</td>
+            <td>${valOrDash(it.note)}</td>
+          </tr>`;
+      }).join('');
+
+      // Photos HTML
+      const validPhotos = (upsData.photos || []).filter(p => p.dataUrl);
+      const photosHTML = validPhotos.length ? `
+        <div class="p-page-break"></div>
+        <div class="p-section-title">תמונות תיעוד ותקלות מהשטח</div>
+        <div class="p-photo-grid">
+          ${validPhotos.map((p, i) => `
+            <div class="p-photo-card">
+              <img src="${p.dataUrl}" alt="תמונה ${i + 1}" />
+              <div style="margin-top:4px;font-size:9pt;">
+                <strong>${esc(p.type || 'תיעוד')}</strong>${p.caption ? ' - ' + esc(p.caption) : ''}
+              </div>
+            </div>`).join('')}
+        </div>` : '';
+
+      document.getElementById('print-area').innerHTML = `
+        ${coverHTML}
+
+        ${brandHeaderHTML()}
+        <div class="p-section-title">מערכת אל-פסק: פרטים טכניים</div>
+        <table class="p-table"><tbody>${techRows}</tbody></table>
+
+        <div class="p-section-title">נתוני מפסקים וכוונון הגנות (A)</div>
+        <table class="p-table">
+          <thead>
+            <tr>
+              <th>מפסק</th><th>יצרן</th><th>דגם</th><th>זרם נקוב (A)</th>
+              <th class="p-center">L (A)</th><th class="p-center">S (A)</th><th class="p-center">I (A)</th><th class="p-center">G (A)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${breakerRows}
+            <tr><th colspan="3">33. מתקן מוזן בשלמותו מהמערכת</th><td colspan="5">${valOrDash(f.t33)}</td></tr>
+          </tbody>
+        </table>
+
+        <table class="p-table">
+          <tr>
+            <th>מספר קטבים במפסק הזנה</th><td>${valOrDash(f.poles)}</td>
+            <th>מעקף תפעולי באמצעות</th><td>${valOrDash(f.opBypassBy)}</td>
+          </tr>
+          <tr>
+            <th>מעקף לתחזוקה באמצעות מפסקים אלקטרומכניים</th><td>${valOrDash(f.maintBypassBy)}</td>
+            <th>מתח / תדר בפעולה / רציפות אפס 25A</th><td>${valOrDash(f.opVolt)} V  |  ${valOrDash(f.opFreq)} Hz  |  ${valOrDash(f.zeroContVal)}</td>
+          </tr>
+        </table>
+
+        <div class="p-page-break"></div>
+        ${brandHeaderHTML()}
+        <div class="p-section-title">מדידות עכבת לולאת תקלה וזרם קצר צפוי</div>
+        ${loopsHTML}
+        <div style="font-size:8.5pt;color:#334155;margin-bottom:10px;">
+          מקרא: P-תקין, F-לא תקין, NC-לא נבדק, NA-לא ישים | הערה: נתוני כוונון ההגנות במפסקים האוטומטיים בדו"ח זה הם לאחר ביצוע הכוונון (במקרה ונדרש כוונון).
+        </div>
+
+        <div class="p-page-break"></div>
+        ${brandHeaderHTML()}
+        ${checkHTML}
+
+        <div class="p-avoid-break">
+          <div class="p-section-title">פס השוואת פוטנציאלים וחיבורים</div>
+          <table class="p-table">
+            <thead><tr><th>מס'</th><th>הנושא</th><th class="p-center">תקינות</th><th>הערות</th></tr></thead>
+            <tbody>${ebbRows}</tbody>
+          </table>
+        </div>
+
+        <div class="p-avoid-break">
+          <div class="p-section-title">בדיקת התנגדות בידוד של הכבלים (MΩ)</div>
+          <table class="p-table">
+            <thead>
+              <tr><th>פאזה / מוליך</th><th class="p-center">כבל כניסה (MΩ)</th><th class="p-center">כבל יציאה (MΩ)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Rph1-e</td><td class="p-center">${valOrDash(f['ins-in-1'])}</td><td class="p-center">${valOrDash(f['ins-out-1'])}</td></tr>
+              <tr><td>Rph2-e</td><td class="p-center">${valOrDash(f['ins-in-2'])}</td><td class="p-center">${valOrDash(f['ins-out-2'])}</td></tr>
+              <tr><td>Rph3-e</td><td class="p-center">${valOrDash(f['ins-in-3'])}</td><td class="p-center">${valOrDash(f['ins-out-3'])}</td></tr>
+              <tr><td>Rn-e</td><td class="p-center">${valOrDash(f['ins-in-n'])}</td><td class="p-center">${valOrDash(f['ins-out-n'])}</td></tr>
+              <tr><th>התנגדות בידוד הכבלים תקינה</th><td colspan="2" class="p-center">${fmtStatus(upsData.insOk)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-avoid-break">
+          <div class="p-section-title">רשימת הסתייגויות והערות כלליות</div>
+          <table class="p-table">
+            <tr><th style="width:24%;">רשימת הסתייגויות</th><td>${valOrDash(upsData.reservations)}</td></tr>
+            <tr><th>הערות כלליות</th><td>${valOrDash(upsData.notes)}</td></tr>
+          </table>
+        </div>
+
+        ${photosHTML}
+
+        ${stampHTML()}
+        ${brandFooterHTML()}
+      `;
+
+      setTimeout(() => window.print(), 150);
+    }
+
+    /* ================= INIT ================= */
+    renderSettings();
+    renderGeneral();
+    loadUpsFieldsToDOM();
+    buildUpsDynamicUI();
+  </script>
+</body>
+</html>
