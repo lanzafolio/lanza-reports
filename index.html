@@ -209,20 +209,9 @@
       width: fit-content;
     }
 
-    .badge-ai {
-      background: var(--ai-light);
-      color: var(--ai);
-    }
-
-    .badge-ok {
-      background: var(--ok-bg);
-      color: var(--ok);
-    }
-
-    .badge-wait {
-      background: var(--nc-bg);
-      color: var(--nc);
-    }
+    .badge-ai { background: var(--ai-light); color: var(--ai); }
+    .badge-ok { background: var(--ok-bg); color: var(--ok); }
+    .badge-wait { background: var(--nc-bg); color: var(--nc); }
 
     /* Form Controls */
     .grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -697,18 +686,15 @@
           </div>
           <div class="field">
             <label>מודל AI לפענוח</label>
-            <select id="set-geminiModel" onchange="saveSettings()">
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash (מומלץ ומהיר)</option>
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro (מעמיק יותר)</option>
-            </select>
+            <select id="set-geminiModel" onchange="saveSettings()"></select>
           </div>
         </div>
-        <div class="voice-row" style="margin-top:6px;">
+        <div class="voice-row" style="margin-top:8px;">
           <button class="btn btn-ai btn-sm" onclick="testGeminiKey()">בדוק חיבור AI</button>
+          <button class="btn btn-primary btn-sm" onclick="loadAvailableModels(false)">טען מודלים זמינים מהמפתח שלי</button>
           <button class="btn btn-outline btn-sm" onclick="toggleApiKeyVis()">הצג / הסתר מפתח</button>
-          <span id="ai-test-result" class="small-hint" style="margin:0;font-weight:600;"></span>
         </div>
+        <div id="ai-test-result" class="small-hint" style="margin-top:8px;font-weight:600;"></div>
       </div>
 
       <div class="card">
@@ -1079,6 +1065,11 @@
       ups: 'lanza_app_ups_v1'
     };
 
+    const DEFAULT_MODELS = [
+      { id: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro Preview (עדכני)' },
+      { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (מהיר)' }
+    ];
+
     const DEFAULT_SETTINGS = {
       bizName: 'לנזה - בדיקות, ייעוץ ותכנון מתקני חשמל',
       roleTitle: 'בודק',
@@ -1092,7 +1083,8 @@
       logo: '',
       stamp: '',
       geminiApiKey: '',
-      geminiModel: 'gemini-2.5-flash'
+      geminiModel: 'gemini-3.1-pro-preview',
+      availableModels: DEFAULT_MODELS
     };
 
     const UPS_BREAKERS_DEF = [
@@ -1207,7 +1199,6 @@
     let currentUpsStep = 1;
     let toastTimer = null;
 
-    // Voice Recording State
     let activeRecorder = null;
     let activeStream = null;
     let recordingIdx = -1;
@@ -1361,8 +1352,33 @@
       window.scrollTo(0, 0);
     }
 
-    /* ================= SETTINGS ================= */
+    /* ================= SETTINGS & DYNAMIC MODEL DISCOVERY ================= */
+    function renderModelOptions() {
+      const sel = document.getElementById('set-geminiModel');
+      const list = (Array.isArray(settings.availableModels) && settings.availableModels.length)
+        ? settings.availableModels
+        : DEFAULT_MODELS;
+
+      sel.innerHTML = '';
+      list.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.label || m.id;
+        sel.appendChild(opt);
+      });
+
+      const current = settings.geminiModel || list[0].id;
+      if (!list.some(m => m.id === current)) {
+        const extra = document.createElement('option');
+        extra.value = current;
+        extra.textContent = current;
+        sel.appendChild(extra);
+      }
+      sel.value = current;
+    }
+
     function renderSettings() {
+      renderModelOptions();
       ['bizName', 'roleTitle', 'inspectorName', 'companyId', 'elecLicense', 'inspectorLicense', 'phone', 'email', 'address', 'geminiApiKey', 'geminiModel']
         .forEach(k => {
           const el = document.getElementById('set-' + k);
@@ -1420,6 +1436,78 @@
       renderSettings();
     }
 
+    async function loadAvailableModels(silent) {
+      const resEl = document.getElementById('ai-test-result');
+      const key = (settings.geminiApiKey || '').trim();
+      if (!key) {
+        resEl.style.color = '#b91c1c';
+        resEl.textContent = 'הדבק קודם מפתח API.';
+        return false;
+      }
+      if (!silent) {
+        resEl.style.color = '#312e81';
+        resEl.textContent = 'טוען את רשימת המודלים שפתוחים למפתח שלך...';
+      }
+
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || ('שגיאה ' + resp.status));
+        }
+        const data = await resp.json();
+        const models = (data.models || [])
+          .filter(m =>
+            m.name &&
+            m.name.includes('gemini') &&
+            !m.name.includes('embedding') &&
+            !m.name.includes('tts') &&
+            !m.name.includes('image-generation') &&
+            Array.isArray(m.supportedGenerationMethods) &&
+            m.supportedGenerationMethods.includes('generateContent')
+          )
+          .map(m => {
+            const id = m.name.replace(/^models\//, '');
+            const label = m.displayName ? `${m.displayName} (${id})` : id;
+            return { id, label };
+          });
+
+        if (!models.length) {
+          throw new Error('לא נמצאו מודלים זמינים במפתח זה.');
+        }
+
+        // Prioritize Flash and newer Gemini 3/2.5 models at top of list
+        models.sort((a, b) => {
+          const score = id => {
+            let s = 0;
+            if (id.includes('3.1') || id.includes('3.0') || id.includes('gemini-3')) s += 40;
+            else if (id.includes('2.5')) s += 20;
+            if (id.includes('flash') && !id.includes('lite')) s += 15;
+            if (id.includes('pro')) s += 10;
+            return s;
+          };
+          return score(b.id) - score(a.id);
+        });
+
+        settings.availableModels = models;
+        if (!models.some(m => m.id === settings.geminiModel) || settings.geminiModel === 'gemini-2.5-pro') {
+          settings.geminiModel = models[0].id;
+        }
+        await idbSet(STORAGE_KEYS.settings, settings);
+        renderModelOptions();
+
+        if (!silent) {
+          resEl.style.color = '#15803d';
+          resEl.textContent = `נטענו ${models.length} מודלים זמינים! נבחר: ${settings.geminiModel}. עכשיו לחץ על "בדוק חיבור AI".`;
+        }
+        return true;
+      } catch (e) {
+        resEl.style.color = '#b91c1c';
+        resEl.textContent = 'שגיאה בטעינת מודלים: ' + e.message;
+        return false;
+      }
+    }
+
     async function testGeminiKey() {
       const resEl = document.getElementById('ai-test-result');
       const key = (settings.geminiApiKey || '').trim();
@@ -1431,7 +1519,7 @@
       resEl.style.color = '#312e81';
       resEl.textContent = 'בודק חיבור...';
       try {
-        const model = settings.geminiModel || 'gemini-2.5-flash';
+        const model = settings.geminiModel || 'gemini-3.1-pro-preview';
         const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1439,10 +1527,19 @@
         });
         if (!resp.ok) {
           const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData?.error?.message || ('שגיאה ' + resp.status));
+          const msg = errData?.error?.message || ('שגיאה ' + resp.status);
+          if (msg.toLowerCase().includes('no longer available') || resp.status === 404) {
+            const loaded = await loadAvailableModels(true);
+            if (loaded) {
+              resEl.style.color = '#a16207';
+              resEl.textContent = `המודל הקודם (${model}) כבר לא זמין. עדכנתי אוטומטית את הרשימה למודלים שפתוחים אצלך ובחרתי את ${settings.geminiModel} — לחץ שוב על "בדוק חיבור AI".`;
+              return;
+            }
+          }
+          throw new Error(msg);
         }
         resEl.style.color = '#15803d';
-        resEl.textContent = 'החיבור תקין ומוכן לעבודה!';
+        resEl.textContent = `החיבור תקין ומוכן לעבודה! (מודל פעיל: ${model})`;
       } catch (e) {
         resEl.style.color = '#b91c1c';
         resEl.textContent = 'שגיאה בחיבור: ' + e.message;
@@ -1569,7 +1666,7 @@
         throw new Error('אין הקלטה קולית בסעיף זה.');
       }
 
-      const model = settings.geminiModel || 'gemini-2.5-flash';
+      const model = settings.geminiModel || 'gemini-3.1-pro-preview';
       const audioBase64 = item.audioDataUrl.split(',')[1];
       const audioMime = (item.audioMime || 'audio/webm').split(';')[0];
 
@@ -1617,14 +1714,15 @@
       );
 
       if (!resp.ok) {
-        if (resp.status === 400 || resp.status === 403) {
-          throw new Error('מפתח ה-API אינו תקין. בדוק את המפתח במסך ההגדרות.');
-        }
-        if (resp.status === 429) {
-          throw new Error('עומס זמני במכסה החינמית לדקה. המתן 30 שניות ונסה שוב.');
-        }
         const errObj = await resp.json().catch(() => ({}));
-        throw new Error(errObj?.error?.message || ('שגיאת שרת ' + resp.status));
+        const errMsg = errObj?.error?.message || ('שגיאת שרת ' + resp.status);
+        if (resp.status === 429) {
+          throw new Error('עומס זמני במכסה החינמית לדקה. המתן 30 שניות ונסה שוב (או בחר מודל Flash בהגדרות).');
+        }
+        if (errMsg.toLowerCase().includes('no longer available') || resp.status === 404) {
+          throw new Error('המודל שנבחר בהגדרות אינו זמין. היכנס להגדרות ולחץ "טען מודלים זמינים מהמפתח שלי".');
+        }
+        throw new Error(errMsg);
       }
 
       const data = await resp.json();
@@ -1757,7 +1855,6 @@
             <button class="btn btn-danger btn-sm" onclick="removeGenItem(${idx})">מחק</button>
           </div>
 
-          <!-- VOICE PANEL -->
           <div class="voice-panel">
             <div class="voice-row">
               <button type="button" class="btn btn-rec btn-sm" id="rec-btn-${idx}" onclick="toggleVoiceRecording(${idx})">
@@ -1890,7 +1987,6 @@
     }
 
     function buildUpsDynamicUI() {
-      // 1. Breakers
       const bCont = document.getElementById('ups-breakers-container');
       bCont.innerHTML = '';
       UPS_BREAKERS_DEF.forEach(b => {
@@ -1914,7 +2010,6 @@
         bCont.appendChild(box);
       });
 
-      // 2. Loops
       const lCont = document.getElementById('ups-loops-container');
       lCont.innerHTML = '';
       UPS_LOOPS_DEF.forEach(l => {
@@ -2578,7 +2673,7 @@
       setTimeout(() => window.print(), 150);
     }
 
-    /* ================= INIT & MIGRATION FROM V1 ================= */
+    /* ================= INIT & MIGRATION ================= */
     async function loadOrMigrate(key, fallback) {
       let data = await idbGet(key);
       if (!data) {
@@ -2595,6 +2690,10 @@
 
     async function initApp() {
       settings = await loadOrMigrate(STORAGE_KEYS.settings, { ...DEFAULT_SETTINGS });
+      if (settings.geminiModel === 'gemini-2.5-pro') {
+        settings.geminiModel = 'gemini-3.1-pro-preview';
+        await idbSet(STORAGE_KEYS.settings, settings);
+      }
       genData = await loadOrMigrate(STORAGE_KEYS.general, createDefaultGeneral());
       upsData = await loadOrMigrate(STORAGE_KEYS.ups, createDefaultUps());
 
